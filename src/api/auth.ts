@@ -2,12 +2,16 @@ import { apiClient } from '@/api/client'
 import type {
   LoginRequest,
   LoginResponse,
-  MeResponse,
   SignupRequest,
+  UserResponse,
 } from '@/types/auth'
 
 export const signup = async (payload: SignupRequest) => {
-  await apiClient.post('/users/auth/signup', payload)
+  const { data } = await apiClient.post<UserResponse>(
+    '/users/auth/signup',
+    payload,
+  )
+  return data
 }
 
 export const login = async (payload: LoginRequest) => {
@@ -23,6 +27,6 @@ export const logout = async () => {
 }
 
 export const getMe = async () => {
-  const { data } = await apiClient.get<MeResponse>('/users/me')
+  const { data } = await apiClient.get<UserResponse>('/users/me')
   return data
 }

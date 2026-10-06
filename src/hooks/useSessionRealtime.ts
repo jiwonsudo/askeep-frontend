@@ -3,7 +3,11 @@ import { useQueryClient } from '@tanstack/react-query'
 import { questionKeys } from '@/hooks/useQuestion'
 import { sessionKeys } from '@/hooks/useSession'
 import { useSessionSocket } from '@/hooks/useSessionSocket'
+import type { PageResponse } from '@/types/common'
 import type { Question } from '@/types/question'
+import type { Session } from '@/types/session'
+
+type QuestionPage = PageResponse<Question>
 
 /**
  * 세션 상세/질문 목록 react-query 캐시를 웹소켓 이벤트로 직접 갱신한다.
@@ -19,7 +23,7 @@ export const useSessionRealtime = (sessionId: number | undefined) => {
       case 'SESSION_STATUS_CHANGED': {
         queryClient.setQueryData(
           sessionKeys.detail(sessionId),
-          (session: { status: string } | undefined) =>
+          (session: Session | undefined) =>
             session && { ...session, status: event.data.status },
         )
         break
@@ -28,12 +32,14 @@ export const useSessionRealtime = (sessionId: number | undefined) => {
       case 'QUESTION_CREATED': {
         queryClient.setQueryData(
           questionKeys.list(sessionId),
-          (questions: Question[] | undefined) => {
-            if (!questions) return questions
-            if (questions.some((q) => q.id === event.data.id)) {
-              return questions
+          (page: QuestionPage | undefined) => {
+            if (!page) return page
+            if (page.items.some((q) => q.id === event.data.id)) return page
+            return {
+              ...page,
+              items: [...page.items, event.data],
+              totalElements: page.totalElements + 1,
             }
-            return [...questions, event.data]
           },
         )
         break
@@ -44,18 +50,21 @@ export const useSessionRealtime = (sessionId: number | undefined) => {
 
         queryClient.setQueryData(
           questionKeys.list(sessionId),
-          (questions: Question[] | undefined) =>
-            questions?.map((q) =>
-              q.id === incoming.id && incoming.updatedAt > q.updatedAt
-                ? incoming
-                : q,
-            ),
+          (page: QuestionPage | undefined) =>
+            page && {
+              ...page,
+              items: page.items.map((q) =>
+                q.id === incoming.id && incoming.updatedAt > q.updatedAt
+                  ? { ...incoming, mine: q.mine }
+                  : q,
+              ),
+            },
         )
         queryClient.setQueryData(
           questionKeys.detail(incoming.id),
           (question: Question | undefined) =>
             !question || incoming.updatedAt > question.updatedAt
-              ? incoming
+              ? { ...incoming, mine: question?.mine ?? incoming.mine }
               : question,
         )
         break
@@ -64,8 +73,12 @@ export const useSessionRealtime = (sessionId: number | undefined) => {
       case 'QUESTION_DELETED': {
         queryClient.setQueryData(
           questionKeys.list(sessionId),
-          (questions: Question[] | undefined) =>
-            questions?.filter((q) => q.id !== event.data.questionId),
+          (page: QuestionPage | undefined) =>
+            page && {
+              ...page,
+              items: page.items.filter((q) => q.id !== event.data.questionId),
+              totalElements: Math.max(0, page.totalElements - 1),
+            },
         )
         break
       }

@@ -17,9 +17,9 @@ export const useLogin = () => {
 
   return useMutation({
     mutationFn: login,
-    onSuccess: ({ accessToken }) => {
+    onSuccess: ({ accessToken, user }) => {
       localStorage.setItem('accessToken', accessToken)
-      queryClient.invalidateQueries({ queryKey: meQueryKey })
+      queryClient.setQueryData(meQueryKey, user)
     },
   })
 }
@@ -35,9 +35,11 @@ export const useLogout = () => {
 
   return useMutation({
     mutationFn: logout,
-    onSuccess: () => {
+    // 서버 요청이 실패해도(토큰 만료 등) 이 기기에서는 로그아웃 처리한다
+    onSettled: () => {
       localStorage.removeItem('accessToken')
-      queryClient.removeQueries({ queryKey: meQueryKey })
+      // 다른 계정의 데이터가 남지 않도록 캐시를 모두 비운다
+      queryClient.clear()
     },
   })
 }
