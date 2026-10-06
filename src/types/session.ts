@@ -1,41 +1,76 @@
-export type SessionStatus = 'SCHEDULED' | 'ONGOING' | 'ENDED'
+import type { PageResponse } from '@/types/common'
 
+/** ACTIVE는 백엔드에서 확인 중인 값 */
+export type SessionStatus = 'READY' | 'ONGOING' | 'ACTIVE' | 'ENDED'
+export type ParticipantRoleType = 'PRESENTER' | 'AUDIENCE'
+export type ProcessStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+
+/** 날짜는 서버 기준 한국 시간이며 타임존 표기가 없다 */
 export interface Session {
-  id: number
+  sessionId: number
   title: string
+  description: string | null
+  presenterId: number
+  presenterName: string
+  entryCode: string
   status: SessionStatus
-  /** 발표자 본인 조회가 아니면 null로 내려옴 */
-  entryCode: string | null
+  startedAt: string | null
+  endedAt: string | null
+  createdAt: string
 }
 
 export interface CreateSessionRequest {
   title: string
+  description?: string
 }
 
 export interface UpdateSessionRequest {
   title?: string
+  description?: string
 }
 
-export interface ParticipantRole {
-  role: 'PRESENTER' | 'AUDIENCE'
+export interface SessionsQuery {
+  status?: SessionStatus
 }
 
 export interface JoinByEntryCodeRequest {
   entryCode: string
 }
 
+export interface ParticipantResponse {
+  sessionId: number
+  userId: number
+  role: ParticipantRoleType
+}
+
 export interface SessionSummary {
-  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
-  content?: string
+  sessionId: number
+  status: ProcessStatus
+  summary: string | null
+  tags: string[]
+  createdAt: string
+  updatedAt: string
 }
 
 export interface MySessionsQuery {
-  role: 'PRESENTER' | 'AUDIENCE'
+  role?: ParticipantRoleType
+}
+
+export interface MySession {
+  myRole: ParticipantRoleType
+  session: Session
+  summaryStatus: ProcessStatus | null
 }
 
 export interface SessionMaterial {
   id: number
   sessionId: number
   fileName: string
-  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+  contentType: string
+  fileSize: number
+  status: ProcessStatus
+  createdAt: string
+  updatedAt: string
 }
+
+export type SessionMaterialPage = PageResponse<SessionMaterial>

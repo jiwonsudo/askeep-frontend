@@ -2,9 +2,13 @@ import { apiClient } from '@/api/client'
 import type {
   CreateSessionRequest,
   JoinByEntryCodeRequest,
+  MySession,
   MySessionsQuery,
+  ParticipantResponse,
   Session,
   SessionMaterial,
+  SessionMaterialPage,
+  SessionsQuery,
   SessionSummary,
   UpdateSessionRequest,
 } from '@/types/session'
@@ -14,8 +18,10 @@ export const createSession = async (payload: CreateSessionRequest) => {
   return data
 }
 
-export const getSessions = async () => {
-  const { data } = await apiClient.get<Session[]>('/sessions')
+export const getSessions = async (query?: SessionsQuery) => {
+  const { data } = await apiClient.get<Session[]>('/sessions', {
+    params: query,
+  })
   return data
 }
 
@@ -40,17 +46,23 @@ export const deleteSession = async (sessionId: number) => {
 }
 
 export const startSession = async (sessionId: number) => {
-  await apiClient.post(`/sessions/${sessionId}/start`)
+  const { data } = await apiClient.post<Session>(`/sessions/${sessionId}/start`)
+  return data
 }
 
 export const endSession = async (sessionId: number) => {
-  await apiClient.post(`/sessions/${sessionId}/end`)
+  const { data } = await apiClient.post<Session>(`/sessions/${sessionId}/end`)
+  return data
 }
 
 export const joinSessionByEntryCode = async (
   payload: JoinByEntryCodeRequest,
 ) => {
-  await apiClient.post('/sessions/participants', payload)
+  const { data } = await apiClient.post<ParticipantResponse>(
+    '/sessions/participants',
+    payload,
+  )
+  return data
 }
 
 export const getSessionSummary = async (sessionId: number) => {
@@ -61,20 +73,20 @@ export const getSessionSummary = async (sessionId: number) => {
 }
 
 export const retrySessionSummary = async (sessionId: number) => {
-  await apiClient.post(`/sessions/${sessionId}/summary/retry`)
+  const { data } = await apiClient.post<SessionSummary>(
+    `/sessions/${sessionId}/summary/retry`,
+  )
+  return data
 }
 
-export const getMySessions = async (query: MySessionsQuery) => {
-  const { data } = await apiClient.get<Session[]>('/users/me/sessions', {
+export const getMySessions = async (query?: MySessionsQuery) => {
+  const { data } = await apiClient.get<MySession[]>('/users/me/sessions', {
     params: query,
   })
   return data
 }
 
-export const uploadSessionMaterial = async (
-  sessionId: number,
-  file: File,
-) => {
+export const uploadSessionMaterial = async (sessionId: number, file: File) => {
   const formData = new FormData()
   formData.append('file', file)
 
@@ -86,9 +98,13 @@ export const uploadSessionMaterial = async (
   return data
 }
 
-export const getSessionMaterials = async (sessionId: number) => {
-  const { data } = await apiClient.get<SessionMaterial[]>(
+export const getSessionMaterials = async (
+  sessionId: number,
+  query?: { page?: number; size?: number },
+) => {
+  const { data } = await apiClient.get<SessionMaterialPage>(
     `/sessions/${sessionId}/materials`,
+    { params: query },
   )
   return data
 }
@@ -105,5 +121,8 @@ export const deleteMaterial = async (materialId: number) => {
 }
 
 export const retryMaterial = async (materialId: number) => {
-  await apiClient.post(`/materials/${materialId}/retry`)
+  const { data } = await apiClient.post<SessionMaterial>(
+    `/materials/${materialId}/retry`,
+  )
+  return data
 }

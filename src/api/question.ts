@@ -1,4 +1,5 @@
 import { apiClient } from '@/api/client'
+import type { PageResponse } from '@/types/common'
 import type {
   Answer,
   CreateAnswerRequest,
@@ -24,7 +25,7 @@ export const getQuestions = async (
   sessionId: number,
   query?: GetQuestionsQuery,
 ) => {
-  const { data } = await apiClient.get<Question[]>(
+  const { data } = await apiClient.get<PageResponse<Question>>(
     `/sessions/${sessionId}/questions`,
     { params: query },
   )
@@ -52,7 +53,10 @@ export const deleteQuestion = async (questionId: number) => {
 }
 
 export const retryAiAnswer = async (questionId: number) => {
-  await apiClient.post(`/questions/${questionId}/ai-answer/retry`)
+  const { data } = await apiClient.post<Question>(
+    `/questions/${questionId}/ai-answer/retry`,
+  )
+  return data
 }
 
 export const getAnswers = async (questionId: number) => {
@@ -84,7 +88,7 @@ export const updateAnswer = async (
   return data
 }
 
-// 명세상 삭제 엔드포인트만 단수형 `/answer`로 되어 있어 그대로 반영 (팀에 오탈자 여부 확인 필요)
+// Swagger상 삭제 엔드포인트만 단수형 `/answer`. 백엔드에서 `/answers/`로 바뀔 수 있음
 export const deleteAnswer = async (answerId: number) => {
   await apiClient.delete(`/answer/${answerId}`)
 }
