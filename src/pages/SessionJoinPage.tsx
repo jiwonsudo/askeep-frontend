@@ -14,7 +14,8 @@ import { saveEntryCode } from '@/utils/entryCodeStorage'
 import Icon from '@/components/common/Icon'
 
 const ENTRY_CODE_LENGTH = 6
-const ENTRY_CODE_PATTERN = /^[A-Za-z0-9]{6}$/
+// 서버가 만드는 입장 코드는 영문 대문자와 숫자뿐이라, 입력도 대문자로만 받는다
+const ENTRY_CODE_PATTERN = /^[A-Z0-9]{6}$/
 
 export default function SessionJoinPage() {
   const navigate = useNavigate()
@@ -78,7 +79,9 @@ export default function SessionJoinPage() {
                 : undefined
             }
             onChange={(event) =>
-              setEntryCode(event.target.value.replace(/[^A-Za-z0-9]/g, ''))
+              setEntryCode(
+                event.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase(),
+              )
             }
           />
           <Button
