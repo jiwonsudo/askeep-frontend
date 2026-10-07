@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router'
 import RequireAuth from '@/components/auth/RequireAuth'
 import ArchivePage from '@/pages/ArchivePage'
 import AudienceSessionPage from '@/pages/AudienceSessionPage'
+import FaqPage from '@/pages/FaqPage'
 import LoginPage from '@/pages/LoginPage'
 import PresenterSessionPage from '@/pages/PresenterSessionPage'
 import PrivacyPolicyPage from '@/pages/PrivacyPolicyPage'
@@ -17,6 +18,7 @@ function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      <Route path="/faq" element={<FaqPage />} />
 
       <Route element={<RequireAuth />}>
         <Route path="/" element={<SessionJoinPage />} />
