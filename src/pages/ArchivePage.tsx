@@ -1,5 +1,6 @@
 import { useQueries } from '@tanstack/react-query'
 import { useState } from 'react'
+import { useLocation } from 'react-router'
 
 import { getSessionSummary } from '@/api/session'
 import { getApiErrorMessage } from '@/api/client'
@@ -16,7 +17,11 @@ const normalizeTag = (tag: string) => tag.replace(/^#/, '').trim()
 
 export default function ArchivePage() {
   const mySessions = useMySessions()
-  const [expandedId, setExpandedId] = useState<number>()
+  // 세션을 종료하고 넘어온 경우 방금 끝낸 세션을 펼쳐서 바로 보여준다
+  const location = useLocation()
+  const [expandedId, setExpandedId] = useState<number | undefined>(
+    (location.state as { expandedId?: number } | null)?.expandedId,
+  )
   const [selectedTag, setSelectedTag] = useState<string>()
 
   // 종료된 세션만 아카이브에 보여주고, 최근에 끝난 순으로 정렬한다

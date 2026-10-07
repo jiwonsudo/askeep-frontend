@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { QueryClient } from '@tanstack/react-query'
 
 import {
   createSession,
@@ -19,6 +20,7 @@ import {
   uploadSessionMaterial,
 } from '@/api/session'
 import type { MySessionsQuery, SessionsQuery } from '@/types/session'
+import { parseServerDate } from '@/utils/date'
 
 export const sessionKeys = {
   all: ['sessions'] as const,
@@ -49,11 +51,45 @@ export const useSession = (
   })
 }
 
+/** 요약이 만들어지는 동안 목록을 다시 불러오는 간격 */
+const SUMMARY_POLL_MS = 5000
+/** 종료 직후 요약 상태가 아직 비어 있을 수 있어서, 이 시간 안에 끝난 세션은 준비 중으로 본다 */
+const SUMMARY_GRACE_MS = 5 * 60 * 1000
+
 export const useMySessions = (query?: MySessionsQuery) => {
   return useQuery({
     queryKey: sessionKeys.mine(query),
     queryFn: () => getMySessions(query),
+    // 종료한 세션의 AI 요약이 끝날 때까지는 새로고침 없이도 상태가 바뀌도록 주기적으로 확인한다
+    refetchInterval: (state) =>
+      state.state.data?.some(({ session, summaryStatus }) => {
+        if (session.status !== 'ENDED') return false
+        if (summaryStatus === 'PENDING' || summaryStatus === 'PROCESSING') {
+          return true
+        }
+
+        return (
+          summaryStatus === null &&
+          session.endedAt !== null &&
+          Date.now() - parseServerDate(session.endedAt).getTime() <
+            SUMMARY_GRACE_MS
+        )
+      })
+        ? SUMMARY_POLL_MS
+        : false,
   })
+}
+
+/**
+ * 내 세션 목록(홈의 참여 중인 세션, 아카이브)을 최신으로 맞춘다.
+ * 아직 화면에 안 떠 있는 목록도 다시 받아 두어서, 이동하자마자 바뀐 상태가 보이게 한다.
+ * 다시 받기에 실패해도 호출한 동작(종료·시작 등)은 실패로 만들지 않는다.
+ */
+const refreshMySessions = async (queryClient: QueryClient) => {
+  await queryClient.invalidateQueries({ queryKey: ['sessions', 'mine'] })
+  await queryClient
+    .refetchQueries({ queryKey: ['sessions', 'mine'], type: 'all' })
+    .catch(() => undefined)
 }
 
 export const useCreateSession = () => {
@@ -97,10 +133,11 @@ export const useStartSession = (sessionId: number) => {
 
   return useMutation({
     mutationFn: () => startSession(sessionId),
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({
         queryKey: sessionKeys.detail(sessionId),
       })
+      await refreshMySessions(queryClient)
     },
   })
 }
@@ -110,17 +147,22 @@ export const useEndSession = (sessionId: number) => {
 
   return useMutation({
     mutationFn: () => endSession(sessionId),
-    onSuccess: () => {
+    // 다음 화면(아카이브)으로 넘어가기 전에 목록을 먼저 새로 받아 둔다
+    onSuccess: async () => {
       queryClient.invalidateQueries({
         queryKey: sessionKeys.detail(sessionId),
       })
+      await refreshMySessions(queryClient)
     },
   })
 }
 
 export const useJoinSessionByEntryCode = () => {
+  const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: joinSessionByEntryCode,
+    onSuccess: () => refreshMySessions(queryClient),
   })
 }
 

@@ -26,6 +26,8 @@ export const useSessionRealtime = (sessionId: number | undefined) => {
           (session: Session | undefined) =>
             session && { ...session, status: event.data.status },
         )
+        // 홈의 참여 중인 세션, 아카이브 목록도 바뀐 상태에 맞춘다
+        queryClient.invalidateQueries({ queryKey: ['sessions', 'mine'] })
         break
       }
 

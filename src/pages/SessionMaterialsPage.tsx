@@ -209,7 +209,10 @@ function SessionMaterialsContent({ sessionId }: { sessionId: number }) {
         error={end.error}
         onClose={() => setEndOpen(false)}
         onConfirm={() =>
-          end.mutate(undefined, { onSuccess: () => navigate('/archive') })
+          end.mutate(undefined, {
+            onSuccess: () =>
+              navigate('/archive', { state: { expandedId: sessionId } }),
+          })
         }
       />
     </PageLayout>
