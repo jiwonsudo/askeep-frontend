@@ -6,6 +6,7 @@ import StatusTag from '@/components/common/StatusTag'
 import QuestionCard from '@/components/question/QuestionCard'
 import QuestionForm from '@/components/session/QuestionForm'
 import SlideViewer from '@/components/session/SlideViewer'
+import { useMe } from '@/hooks/useAuth'
 import { useQuestions } from '@/hooks/useQuestion'
 import { useSession } from '@/hooks/useSession'
 import { useSessionRealtime } from '@/hooks/useSessionRealtime'
@@ -19,9 +20,15 @@ interface AudienceSessionContentProps {
 }
 
 function AudienceSessionContent({ sessionId }: AudienceSessionContentProps) {
+  const me = useMe()
   const session = useSession(sessionId)
   const questions = useQuestions(sessionId)
   useSessionRealtime(sessionId)
+
+  // 내가 발표자인 세션은 청자 화면이 아니라 발표자 화면으로 보낸다
+  if (session.data && me.data && session.data.presenterId === me.data.userId) {
+    return <Navigate to={`/sessions/${sessionId}/present`} replace />
+  }
 
   // 최신 질문이 위로 오도록 정렬
   const items = [...(questions.data?.items ?? [])].sort((a, b) => b.id - a.id)

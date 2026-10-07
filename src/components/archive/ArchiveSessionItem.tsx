@@ -46,6 +46,9 @@ export default function ArchiveSessionItem({
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <StatusTag variant={tag.variant}>{tag.label}</StatusTag>
+            <StatusTag variant={myRole === 'PRESENTER' ? 'request' : 'neutral'}>
+              {myRole === 'PRESENTER' ? '발표자' : '청자'}
+            </StatusTag>
             <time className="text-ink-sub text-xs font-medium">
               {formatDate(session.endedAt ?? session.createdAt)}
             </time>

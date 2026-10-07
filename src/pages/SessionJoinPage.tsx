@@ -7,6 +7,7 @@ import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import AuthCard from '@/components/auth/AuthCard'
 import PageLayout from '@/components/common/PageLayout'
+import MyLiveSessions from '@/components/session/MyLiveSessions'
 import { useJoinSessionByEntryCode } from '@/hooks/useSession'
 import Icon from '@/components/common/Icon'
 
@@ -37,6 +38,7 @@ export default function SessionJoinPage() {
         title="세션에 참여하기"
         description="발표자가 공유한 입장코드를 입력해 주세요."
         className="md:pt-[88px]"
+        after={<MyLiveSessions />}
         footer={
           <p className="text-ink-muted flex items-start justify-center gap-2 pt-1 pb-2 text-sm">
             <span className="flex size-4 shrink-0 items-center justify-center">

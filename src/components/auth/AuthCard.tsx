@@ -11,6 +11,8 @@ interface AuthCardProps {
   children: ReactNode
   /** 카드 맨 아래 안내 (예: "계정이 없으신가요?") */
   footer: ReactNode
+  /** 카드 바깥 아래쪽에 붙이는 내용 (예: 내 세션 목록) */
+  after?: ReactNode
   /** 바깥 `main`에 덧붙이는 클래스 */
   className?: string
 }
@@ -21,6 +23,7 @@ export default function AuthCard({
   description,
   children,
   footer,
+  after,
   className,
 }: AuthCardProps) {
   return (
@@ -30,24 +33,27 @@ export default function AuthCard({
         className,
       )}
     >
-      <Card
-        as="section"
-        className="flex h-fit w-full max-w-[432px] flex-col gap-4 p-6 drop-shadow-[0_1px_1.5px_rgba(0,0,0,0.04)] sm:p-[33px]"
-      >
-        <div>
-          <StatusTag>GDGoC SMU 실시간 세션</StatusTag>
-        </div>
+      <div className="flex h-fit w-full max-w-[432px] flex-col gap-6">
+        <Card
+          as="section"
+          className="flex h-fit w-full max-w-[432px] flex-col gap-4 p-6 drop-shadow-[0_1px_1.5px_rgba(0,0,0,0.04)] sm:p-[33px]"
+        >
+          <div>
+            <StatusTag>GDGoC SMU 실시간 세션</StatusTag>
+          </div>
 
-        <div className="flex flex-col gap-2 pt-2">
-          <h1 className="text-ink text-2xl font-bold sm:text-[32px]">
-            {title}
-          </h1>
-          <p className="text-ink-sub text-sm">{description}</p>
-        </div>
+          <div className="flex flex-col gap-2 pt-2">
+            <h1 className="text-ink text-2xl font-bold sm:text-[32px]">
+              {title}
+            </h1>
+            <p className="text-ink-sub text-sm">{description}</p>
+          </div>
 
-        {children}
-        {footer}
-      </Card>
+          {children}
+          {footer}
+        </Card>
+        {after}
+      </div>
     </main>
   )
 }
