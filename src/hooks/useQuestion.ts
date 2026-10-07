@@ -12,6 +12,7 @@ import {
   updateAnswer,
   updateQuestion,
 } from '@/api/question'
+import { useMe } from '@/hooks/useAuth'
 import type { CreateQuestionRequest } from '@/types/question'
 
 export const questionKeys = {
@@ -29,10 +30,22 @@ const isQuestionListKey = (queryKey: readonly unknown[]) =>
   queryKey[0] === 'sessions' && queryKey[2] === 'questions'
 
 export const useQuestions = (sessionId: number) => {
+  const myId = useMe().data?.userId
+
   return useQuery({
     queryKey: questionKeys.list(sessionId),
     queryFn: () =>
       getQuestions(sessionId, { page: 0, size: QUESTIONS_PAGE_SIZE }),
+    // 서버가 `mine`을 내려주지 않으면 작성자 ID로 본인 질문을 가려낸다.
+    // 익명 질문은 작성자가 null이라 서버가 `mine`을 내려줘야 알 수 있다.
+    select: (page) => ({
+      ...page,
+      items: page.items.map((question) => ({
+        ...question,
+        mine:
+          question.mine ?? (myId !== undefined && question.author?.id === myId),
+      })),
+    }),
   })
 }
 
