@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router'
 
-import gdscLogo from '@/assets/gdsc-logo.svg'
 import StatusTag from '@/components/common/StatusTag'
 import Card from '@/components/common/Card'
 
@@ -51,10 +50,6 @@ export default function SignupCompleteModal({
           <p className="text-ink-sub text-sm">
             ASKeep에 로그인하고 실시간 세션 기능을 이용해보세요.
           </p>
-        </div>
-        <div className="flex flex-col items-start gap-0.5">
-          <img src={gdscLogo} alt="" className="h-[53px] w-[111px]" />
-          <span className="text-[14.7px] text-[#1e293b]">GDSC Sangmyung</span>
         </div>
         <div className="flex w-full flex-col gap-4 pt-3">
           <Link
