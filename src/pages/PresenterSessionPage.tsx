@@ -36,9 +36,19 @@ function PresenterSessionContent({ sessionId }: { sessionId: number }) {
   const ended = session.data?.status === 'ENDED'
 
   // 아직 답하지 않은 질문을 위로, 같은 상태끼리는 최신 질문부터 보여준다
-  const items = [...(questions.data?.items ?? [])].sort(
-    (a, b) => Number(isAnswered(a)) - Number(isAnswered(b)) || b.id - a.id,
+  const likes = (question: Question) => question.likeCount ?? 0
+  const all = questions.data?.items ?? []
+  const items = [...all].sort(
+    (a, b) =>
+      Number(isAnswered(a)) - Number(isAnswered(b)) ||
+      likes(b) - likes(a) ||
+      b.id - a.id,
   )
+  // 공감이 더 많은 질문의 수 + 1이 순위. 공감이 없으면 순위를 매기지 않는다
+  const rankOf = (question: Question) =>
+    likes(question) === 0
+      ? null
+      : 1 + all.filter((other) => likes(other) > likes(question)).length
 
   return (
     <PageLayout
@@ -71,7 +81,7 @@ function PresenterSessionContent({ sessionId }: { sessionId: number }) {
                 </span>
               </div>
               <p className="text-ink-sub text-sm">
-                질문을 말로 답변하고{' '}
+                공감이 많은 질문부터 순서대로 말로 답변하고{' '}
                 <strong className="text-ink font-bold">'답변 완료'</strong>를
                 표시하세요.
               </p>
@@ -94,7 +104,11 @@ function PresenterSessionContent({ sessionId }: { sessionId: number }) {
               <StateMessage>아직 들어온 질문이 없어요.</StateMessage>
             )}
             {items.map((question) => (
-              <PresenterQuestionCard key={question.id} question={question} />
+              <PresenterQuestionCard
+                key={question.id}
+                question={question}
+                rank={rankOf(question)}
+              />
             ))}
           </div>
         </div>

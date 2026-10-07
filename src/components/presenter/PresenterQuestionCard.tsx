@@ -4,25 +4,30 @@ import { getApiErrorMessage } from '@/api/client'
 import Icon from '@/components/common/Icon'
 import Button from '@/components/common/Button'
 import StatusTag from '@/components/common/StatusTag'
+import LikeRank from '@/components/presenter/LikeRank'
+import CompleteMemoForm from '@/components/presenter/CompleteMemoForm'
+import PresenterAnswers from '@/components/presenter/PresenterAnswers'
+import {
+  isVerbalAnswer,
+  VERBAL_ANSWER_CONTENT,
+} from '@/components/presenter/verbalAnswer'
 import { useCreateAnswer, useDeleteAnswer } from '@/hooks/useQuestion'
 import { formatRelativeTime } from '@/utils/date'
 import type { Question } from '@/types/question'
 import Card from '@/components/common/Card'
 
-/**
- * 백엔드에 "답변 완료" 표시 전용 API가 없어서, 발표자 답변(PRESENTER)을
- * 하나 남기는 것으로 완료를 표현한다. 답변 내용은 필수라 고정 문구를 쓴다.
- */
-const DONE_ANSWER_CONTENT = '발표자가 현장에서 구두로 답변했어요.'
-
 interface PresenterQuestionCardProps {
   question: Question
+  /** 공감 순위. 공감이 하나도 없으면 null */
+  rank: number | null
 }
 
 export default function PresenterQuestionCard({
   question,
+  rank,
 }: PresenterQuestionCardProps) {
   const [aiOpen, setAiOpen] = useState(false)
+  const [completing, setCompleting] = useState(false)
   const createAnswer = useCreateAnswer(question.id)
   const deleteAnswer = useDeleteAnswer(question.id)
 
@@ -31,20 +36,27 @@ export default function PresenterQuestionCard({
     (answer) => answer.type === 'PRESENTER',
   )
   const done = presenterAnswers.length > 0
+  // 직접 쓴 답변이 있으면 "완료됨 (취소)"로 지워 버리지 않고, 답변 옆의 삭제로만 지운다
+  const verbalOnly = done && presenterAnswers.every(isVerbalAnswer)
   const pending = createAnswer.isPending || deleteAnswer.isPending
   const error = createAnswer.error ?? deleteAnswer.error
 
   const authorName =
     question.anonymous || !question.author ? '익명' : question.author.username
 
-  const toggleDone = async () => {
-    if (done) {
-      for (const answer of presenterAnswers) {
-        await deleteAnswer.mutateAsync(answer.id).catch(() => undefined)
-      }
-    } else {
-      createAnswer.mutate({ content: DONE_ANSWER_CONTENT })
+  // 완료된 상태에서 누르면 "말로 답변함" 표시를 취소하고, 아니면 한 줄 메모를 받는다
+  const cancelVerbal = async () => {
+    for (const answer of presenterAnswers) {
+      await deleteAnswer.mutateAsync(answer.id).catch(() => undefined)
     }
+  }
+
+  // 메모를 비우면 "말로 답변함" 표시만 남기고, 쓰면 그 메모가 답변으로 남는다
+  const complete = (memo: string) => {
+    createAnswer.mutate(
+      { content: memo || VERBAL_ANSWER_CONTENT },
+      { onSuccess: () => setCompleting(false) },
+    )
   }
 
   return (
@@ -53,6 +65,7 @@ export default function PresenterQuestionCard({
       className="flex flex-col gap-2 p-[25px] drop-shadow-[0_1px_1px_rgba(0,0,0,0.05)]"
     >
       <div className="flex flex-col items-start gap-4 sm:flex-row sm:gap-6">
+        <LikeRank count={question.likeCount ?? 0} rank={rank} />
         <div className="flex min-w-0 flex-1 flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-ink-sub text-xs font-medium">
@@ -121,18 +134,30 @@ export default function PresenterQuestionCard({
               </p>
             </div>
           )}
+
+          <PresenterAnswers question={question} />
+
+          {completing && (
+            <CompleteMemoForm
+              pending={createAnswer.isPending}
+              onSubmit={complete}
+              onCancel={() => setCompleting(false)}
+            />
+          )}
         </div>
 
-        <div className="flex shrink-0 flex-col items-end gap-1 pt-0.5">
-          <Button
-            variant={done ? 'secondary' : 'primary'}
-            className={`h-[39px] ${done ? 'text-ink-muted' : ''}`}
-            disabled={pending}
-            onClick={toggleDone}
-          >
-            {done ? '완료됨 (취소)' : '답변 완료'}
-          </Button>
-        </div>
+        {(!done || verbalOnly) && !completing && (
+          <div className="flex shrink-0 flex-col items-end gap-1 pt-0.5">
+            <Button
+              variant={done ? 'secondary' : 'primary'}
+              className={`h-[39px] ${done ? 'text-ink-muted' : ''}`}
+              disabled={pending}
+              onClick={done ? cancelVerbal : () => setCompleting(true)}
+            >
+              {done ? '완료됨 (취소)' : '답변 완료'}
+            </Button>
+          </div>
+        )}
       </div>
 
       {error != null && (
