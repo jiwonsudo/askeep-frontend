@@ -5,10 +5,15 @@ import Icon from '@/components/common/Icon'
 interface EntryCodeBannerProps {
   /** 세션 정보가 아직 없으면 undefined */
   entryCode?: string
+  /** 코드 오른쪽에 보여주는 안내 문구 */
+  hint?: string
 }
 
 /** 발표자가 참여자에게 공유할 입장 코드를 보여주고 복사할 수 있는 배너 */
-export default function EntryCodeBanner({ entryCode }: EntryCodeBannerProps) {
+export default function EntryCodeBanner({
+  entryCode,
+  hint = '참여자에게 이 코드를 공유해 주세요',
+}: EntryCodeBannerProps) {
   const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {
@@ -35,9 +40,7 @@ export default function EntryCodeBanner({ entryCode }: EntryCodeBannerProps) {
         </span>
       </div>
       <div className="flex items-center gap-3">
-        <span className="text-ink-button hidden text-sm sm:inline">
-          참여자에게 이 코드를 공유해 주세요
-        </span>
+        <span className="text-ink-button hidden text-sm sm:inline">{hint}</span>
         <button
           type="button"
           onClick={handleCopy}

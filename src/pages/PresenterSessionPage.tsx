@@ -6,6 +6,7 @@ import PageLayout from '@/components/common/PageLayout'
 import SessionNavbar from '@/components/common/SessionNavbar'
 import StatusTag from '@/components/common/StatusTag'
 import EndSessionModal from '@/components/presenter/EndSessionModal'
+import EntryCodeBanner from '@/components/session/EntryCodeBanner'
 import PresenterQuestionCard from '@/components/presenter/PresenterQuestionCard'
 import { useMe } from '@/hooks/useAuth'
 import { useQuestions } from '@/hooks/useQuestion'
@@ -69,6 +70,10 @@ function PresenterSessionContent({ sessionId }: { sessionId: number }) {
         </div>
 
         <div className="mx-auto mt-6 flex w-full max-w-[1400px] flex-col gap-8 md:mt-9">
+          {!ended && session.data?.entryCode && (
+            <EntryCodeBanner entryCode={session.data.entryCode} />
+          )}
+
           <header className="flex flex-col gap-1.5">
             <BrandEyebrow />
             <div className="border-line flex flex-col gap-2 border-b pb-[25px]">

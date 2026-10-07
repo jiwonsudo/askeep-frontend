@@ -4,12 +4,14 @@ import { getApiErrorMessage } from '@/api/client'
 import PageLayout from '@/components/common/PageLayout'
 import StatusTag from '@/components/common/StatusTag'
 import QuestionCard from '@/components/question/QuestionCard'
+import EntryCodeBanner from '@/components/session/EntryCodeBanner'
 import QuestionForm from '@/components/session/QuestionForm'
 import SlideViewer from '@/components/session/SlideViewer'
 import { useMe } from '@/hooks/useAuth'
 import { useQuestions } from '@/hooks/useQuestion'
 import { useSession } from '@/hooks/useSession'
 import { useSessionRealtime } from '@/hooks/useSessionRealtime'
+import { loadEntryCode } from '@/utils/entryCodeStorage'
 import BrandEyebrow from '@/components/common/BrandEyebrow'
 import StateMessage from '@/components/common/StateMessage'
 import BackLink from '@/components/common/BackLink'
@@ -30,6 +32,11 @@ function AudienceSessionContent({ sessionId }: AudienceSessionContentProps) {
     return <Navigate to={`/sessions/${sessionId}/present`} replace />
   }
 
+  // 서버는 청자에게 입장 코드를 주지 않아서, 입장할 때 입력해 둔 코드를 대신 보여준다
+  const entryCode =
+    session.data?.entryCode ??
+    (me.data ? loadEntryCode(me.data.userId, sessionId) : undefined)
+
   // 최신 질문이 위로 오도록 정렬
   const items = [...(questions.data?.items ?? [])].sort((a, b) => b.id - a.id)
 
@@ -49,51 +56,61 @@ function AudienceSessionContent({ sessionId }: AudienceSessionContentProps) {
             )}
           </p>
         ) : (
-          <div className="mt-6 grid items-start gap-6 lg:mt-9 lg:grid-cols-2">
-            <div className="flex flex-col gap-6">
-              <SlideViewer />
-              <QuestionForm
-                sessionId={sessionId}
-                status={session.data?.status}
-              />
-            </div>
+          <>
+            {entryCode && session.data?.status !== 'ENDED' && (
+              <div className="mt-6 lg:mt-9">
+                <EntryCodeBanner
+                  entryCode={entryCode}
+                  hint="함께 듣는 사람에게 이 코드를 알려 주세요"
+                />
+              </div>
+            )}
+            <div className="mt-6 grid items-start gap-6 lg:mt-9 lg:grid-cols-2">
+              <div className="flex flex-col gap-6">
+                <SlideViewer />
+                <QuestionForm
+                  sessionId={sessionId}
+                  status={session.data?.status}
+                />
+              </div>
 
-            <Card as="section" className="border-line-soft p-6 sm:p-8">
-              <div className="flex flex-col gap-1.5">
-                <BrandEyebrow />
-                <div className="border-line flex items-center gap-3 border-b pb-[25px]">
-                  <h1 className="text-ink text-2xl font-bold sm:text-[32px]">
-                    실시간 질문
-                  </h1>
-                  <span className="bg-info-bg text-brand-deep rounded-full px-3 py-0.5 text-xl font-bold">
-                    {questions.data?.totalElements ?? 0}
-                  </span>
+              <Card as="section" className="border-line-soft p-6 sm:p-8">
+                <div className="flex flex-col gap-1.5">
+                  <BrandEyebrow />
+                  <div className="border-line flex items-center gap-3 border-b pb-[25px]">
+                    <h1 className="text-ink text-2xl font-bold sm:text-[32px]">
+                      실시간 질문
+                    </h1>
+                    <span className="bg-info-bg text-brand-deep rounded-full px-3 py-0.5 text-xl font-bold">
+                      {questions.data?.totalElements ?? 0}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex flex-col gap-4 pt-4 lg:max-h-[600px] lg:overflow-y-auto lg:pr-1.5">
-                {questions.isPending && (
-                  <StateMessage>질문을 불러오는 중이에요.</StateMessage>
-                )}
-                {questions.isError && (
-                  <StateMessage tone="error">
-                    {getApiErrorMessage(
-                      questions.error,
-                      '질문을 불러오지 못했어요.',
-                    )}
-                  </StateMessage>
-                )}
-                {questions.isSuccess && items.length === 0 && (
-                  <StateMessage>
-                    아직 질문이 없어요. 첫 질문을 남겨보세요.
-                  </StateMessage>
-                )}
-                {items.map((question) => (
-                  <QuestionCard key={question.id} question={question} />
-                ))}
-              </div>
-            </Card>
-          </div>
+                <div className="flex flex-col gap-4 pt-4 lg:max-h-[600px] lg:overflow-y-auto lg:pr-1.5">
+                  {questions.isPending && (
+                    <StateMessage>질문을 불러오는 중이에요.</StateMessage>
+                  )}
+                  {questions.isError && (
+                    <StateMessage tone="error">
+                      {getApiErrorMessage(
+                        questions.error,
+                        '질문을 불러오지 못했어요.',
+                      )}
+                    </StateMessage>
+                  )}
+                  {questions.isSuccess && items.length === 0 && (
+                    <StateMessage>
+                      아직 질문이 없어요. 첫 질문을 남겨보세요.
+                    </StateMessage>
+                  )}
+                  {items.map((question) => (
+                    <QuestionCard key={question.id} question={question} />
+                  ))}
+                </div>
+              </Card>
+            </div>
+          </>
         )}
       </main>
     </PageLayout>

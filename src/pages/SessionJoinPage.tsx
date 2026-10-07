@@ -8,7 +8,9 @@ import Input from '@/components/common/Input'
 import AuthCard from '@/components/auth/AuthCard'
 import PageLayout from '@/components/common/PageLayout'
 import MyLiveSessions from '@/components/session/MyLiveSessions'
+import { useMe } from '@/hooks/useAuth'
 import { useJoinSessionByEntryCode } from '@/hooks/useSession'
+import { saveEntryCode } from '@/utils/entryCodeStorage'
 import Icon from '@/components/common/Icon'
 
 const ENTRY_CODE_LENGTH = 6
@@ -16,6 +18,7 @@ const ENTRY_CODE_PATTERN = /^[A-Za-z0-9]{6}$/
 
 export default function SessionJoinPage() {
   const navigate = useNavigate()
+  const me = useMe()
   const [entryCode, setEntryCode] = useState('')
   const { mutate: join, isPending, error } = useJoinSessionByEntryCode()
 
@@ -28,7 +31,13 @@ export default function SessionJoinPage() {
 
     join(
       { entryCode },
-      { onSuccess: ({ sessionId }) => navigate(`/sessions/${sessionId}`) },
+      {
+        onSuccess: ({ sessionId }) => {
+          // 서버는 청자에게 입장 코드를 안 주므로, 입력한 코드를 기억해 세션 화면에서 다시 보여준다
+          if (me.data) saveEntryCode(me.data.userId, sessionId, entryCode)
+          navigate(`/sessions/${sessionId}`)
+        },
+      },
     )
   }
 
