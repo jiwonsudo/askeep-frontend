@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 
+import LogoutConfirmModal from '@/components/auth/LogoutConfirmModal'
 import Button from '@/components/common/Button'
 import NavbarLogo from '@/components/common/NavbarLogo'
 import { useLogout, useMe } from '@/hooks/useAuth'
@@ -30,6 +31,7 @@ export default function Navbar({ activeMenu }: NavbarProps) {
   const nickname = loggedIn ? me.data?.name : undefined
 
   const [open, setOpen] = useState(false)
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
   const containerRef = useRef<HTMLElement>(null)
   const menuId = useId()
 
@@ -58,141 +60,150 @@ export default function Navbar({ activeMenu }: NavbarProps) {
   const visibleMenus = menus.filter(({ key }) => loggedIn || key === 'faq')
 
   return (
-    <header
-      ref={containerRef}
-      className="bg-nav relative z-40 flex h-[72px] w-full max-w-[1400px] items-center justify-between rounded-2xl px-4 drop-shadow-[0_4px_10px_rgba(0,0,0,0.08)] md:px-6"
-    >
-      <Link to="/" aria-label="ASKeep 홈" className="shrink-0">
-        <NavbarLogo />
-      </Link>
+    <>
+      <header
+        ref={containerRef}
+        className="bg-nav relative z-40 flex h-[72px] w-full max-w-[1400px] items-center justify-between rounded-2xl px-4 drop-shadow-[0_4px_10px_rgba(0,0,0,0.08)] md:px-6"
+      >
+        <Link to="/" aria-label="ASKeep 홈" className="shrink-0">
+          <NavbarLogo />
+        </Link>
 
-      <div className="flex min-w-0 flex-1 items-center justify-end gap-3 pl-3">
-        {nickname && (
-          <span className="min-w-0 truncate text-xs text-white/70">
-            반가워요, {nickname}님
-          </span>
-        )}
-        <button
-          type="button"
-          aria-label={open ? '메뉴 닫기' : '메뉴 열기'}
-          aria-expanded={open}
-          aria-controls={menuId}
-          onClick={() => setOpen((value) => !value)}
-          className="hover:bg-nav-selected -mr-2.5 flex size-10 cursor-pointer items-center justify-center rounded-full text-white"
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 20 20"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            aria-hidden="true"
-          >
-            {open ? (
-              <path d="M5 5l10 10M15 5L5 15" />
-            ) : (
-              <path d="M3 5h14M3 10h14M3 15h14" />
-            )}
-          </svg>
-        </button>
-      </div>
-
-      {open && (
-        <nav
-          id={menuId}
-          aria-label="메뉴"
-          className="bg-nav absolute top-full right-0 mt-2 flex w-64 max-w-full flex-col gap-1 rounded-2xl p-2 shadow-[0_8px_24px_rgba(0,0,0,0.2)]"
-        >
-          {visibleMenus.map(({ key, label, to }) => {
-            const className = cn(
-              itemClassName,
-              key === activeMenu ? 'bg-nav-selected' : 'opacity-80',
-            )
-
-            return to ? (
-              <Link
-                key={key}
-                to={to}
-                aria-current={key === activeMenu ? 'page' : undefined}
-                onClick={close}
-                className={cn(className, 'hover:opacity-100')}
-              >
-                {label}
-              </Link>
-            ) : (
-              <button
-                key={key}
-                type="button"
-                onClick={close}
-                className={className}
-              >
-                {label}
-              </button>
-            )
-          })}
-
-          {loggedIn ? (
-            <>
-              <button
-                type="button"
-                disabled={logout.isPending}
-                onClick={() => {
-                  close()
-                  logout.mutate(undefined, {
-                    onSettled: () => navigate('/login', { replace: true }),
-                  })
-                }}
-                className={cn(itemClassName, 'opacity-80 hover:opacity-100')}
-              >
-                로그아웃
-              </button>
-
-              <div className="border-nav-selected mt-1 flex flex-col gap-2 border-t pt-3">
-                <Button
-                  variant="ai"
-                  className="h-[39px] w-full"
-                  aria-current={activeMenu === 'join' ? 'page' : undefined}
-                  onClick={() => {
-                    close()
-                    navigate('/')
-                  }}
-                >
-                  세션 참여
-                </Button>
-                <Button
-                  className="h-[39px] w-full gap-0"
-                  leftIcon={<span className="text-[15px] font-bold">+</span>}
-                  onClick={() => {
-                    close()
-                    navigate('/sessions/new')
-                  }}
-                >
-                  세션 만들기
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <Link
-                to="/login"
-                onClick={close}
-                className={cn(itemClassName, 'opacity-80 hover:opacity-100')}
-              >
-                로그인
-              </Link>
-              <Link
-                to="/signup"
-                onClick={close}
-                className={cn(itemClassName, 'opacity-80 hover:opacity-100')}
-              >
-                회원가입
-              </Link>
-            </>
+        <div className="flex min-w-0 flex-1 items-center justify-end gap-3 pl-3">
+          {nickname && (
+            <span className="min-w-0 truncate text-xs text-white/70">
+              반가워요, {nickname}님
+            </span>
           )}
-        </nav>
-      )}
-    </header>
+          <button
+            type="button"
+            aria-label={open ? '메뉴 닫기' : '메뉴 열기'}
+            aria-expanded={open}
+            aria-controls={menuId}
+            onClick={() => setOpen((value) => !value)}
+            className="hover:bg-nav-selected -mr-2.5 flex size-10 cursor-pointer items-center justify-center rounded-full text-white"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              {open ? (
+                <path d="M5 5l10 10M15 5L5 15" />
+              ) : (
+                <path d="M3 5h14M3 10h14M3 15h14" />
+              )}
+            </svg>
+          </button>
+        </div>
+
+        {open && (
+          <nav
+            id={menuId}
+            aria-label="메뉴"
+            className="bg-nav absolute top-full right-0 mt-2 flex w-64 max-w-full flex-col gap-1 rounded-2xl p-2 shadow-[0_8px_24px_rgba(0,0,0,0.2)]"
+          >
+            {visibleMenus.map(({ key, label, to }) => {
+              const className = cn(
+                itemClassName,
+                key === activeMenu ? 'bg-nav-selected' : 'opacity-80',
+              )
+
+              return to ? (
+                <Link
+                  key={key}
+                  to={to}
+                  aria-current={key === activeMenu ? 'page' : undefined}
+                  onClick={close}
+                  className={cn(className, 'hover:opacity-100')}
+                >
+                  {label}
+                </Link>
+              ) : (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={close}
+                  className={className}
+                >
+                  {label}
+                </button>
+              )
+            })}
+
+            {loggedIn ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    close()
+                    setLogoutConfirmOpen(true)
+                  }}
+                  className={cn(itemClassName, 'opacity-80 hover:opacity-100')}
+                >
+                  로그아웃
+                </button>
+
+                <div className="border-nav-selected mt-1 flex flex-col gap-2 border-t pt-3">
+                  <Button
+                    variant="ai"
+                    className="h-[39px] w-full"
+                    aria-current={activeMenu === 'join' ? 'page' : undefined}
+                    onClick={() => {
+                      close()
+                      navigate('/')
+                    }}
+                  >
+                    세션 참여
+                  </Button>
+                  <Button
+                    className="h-[39px] w-full gap-0"
+                    leftIcon={<span className="text-[15px] font-bold">+</span>}
+                    onClick={() => {
+                      close()
+                      navigate('/sessions/new')
+                    }}
+                  >
+                    세션 만들기
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  onClick={close}
+                  className={cn(itemClassName, 'opacity-80 hover:opacity-100')}
+                >
+                  로그인
+                </Link>
+                <Link
+                  to="/signup"
+                  onClick={close}
+                  className={cn(itemClassName, 'opacity-80 hover:opacity-100')}
+                >
+                  회원가입
+                </Link>
+              </>
+            )}
+          </nav>
+        )}
+      </header>
+      <LogoutConfirmModal
+        open={logoutConfirmOpen}
+        pending={logout.isPending}
+        onClose={() => setLogoutConfirmOpen(false)}
+        onConfirm={() =>
+          logout.mutate(undefined, {
+            onSettled: () => navigate('/login', { replace: true }),
+          })
+        }
+      />
+    </>
   )
 }
