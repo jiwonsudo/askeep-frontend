@@ -121,7 +121,8 @@ function SessionMaterialsContent({ sessionId }: { sessionId: number }) {
               setUploadErrors((errors) => [
                 ...errors,
                 ...names.map(
-                  (name) => `${name}: PDF, PPTX, TXT 파일만 올릴 수 있어요.`,
+                  (name) =>
+                    `${name}: PDF 파일만 올릴 수 있어요. PPT는 PDF로 저장해서 올려 주세요.`,
                 ),
               ])
             }

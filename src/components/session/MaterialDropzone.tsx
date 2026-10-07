@@ -2,7 +2,8 @@ import { useRef, useState } from 'react'
 import type { DragEvent } from 'react'
 import Icon from '@/components/common/Icon'
 
-const ACCEPTED_EXTENSIONS = ['pdf', 'pptx', 'txt']
+/** 서버가 PDF만 받는다 (그 외는 415 UNSUPPORTED_MEDIA_TYPE) */
+const ACCEPTED_EXTENSIONS = ['pdf']
 
 const isAccepted = (file: File) =>
   ACCEPTED_EXTENSIONS.includes(file.name.split('.').pop()?.toLowerCase() ?? '')
@@ -59,7 +60,7 @@ export default function MaterialDropzone({
         type="file"
         multiple
         hidden
-        accept=".pdf,.pptx,.txt"
+        accept=".pdf,application/pdf"
         onChange={(event) => {
           handleFiles([...(event.target.files ?? [])])
           event.target.value = ''
@@ -74,8 +75,9 @@ export default function MaterialDropzone({
         {uploading ? '업로드 중...' : '+  파일 선택'}
       </button>
       <p className="text-ink-button text-sm">
-        발표 슬라이드(PDF, PPTX, TXT) 지원 / 업로드 즉시 AI 지식 인덱싱이
-        시작됩니다.
+        발표 슬라이드는 PDF만 올릴 수 있어요. PPT는 PDF로 저장해서 올려 주세요.
+        <br />
+        업로드 즉시 AI 지식 인덱싱이 시작됩니다.
       </p>
     </div>
   )
