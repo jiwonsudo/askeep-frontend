@@ -9,7 +9,6 @@ import { cn } from '@/utils/cn'
 export type NavMenu = 'join' | 'archive' | 'faq'
 
 const menus: { key: NavMenu; label: string; to?: string }[] = [
-  { key: 'join', label: '세션 참여', to: '/' },
   { key: 'archive', label: '아카이브', to: '/archive' },
   { key: 'faq', label: 'FAQ', to: '/faq' },
 ]
@@ -141,9 +140,20 @@ export default function Navbar({ activeMenu }: NavbarProps) {
                 로그아웃
               </button>
 
-              <div className="border-nav-selected mt-1 border-t pt-3">
+              <div className="border-nav-selected mt-1 flex flex-col gap-2 border-t pt-3">
                 <Button
-                  className="h-[39px] w-full gap-1.5"
+                  variant="ai"
+                  className="h-[39px] w-full"
+                  aria-current={activeMenu === 'join' ? 'page' : undefined}
+                  onClick={() => {
+                    close()
+                    navigate('/')
+                  }}
+                >
+                  세션 참여
+                </Button>
+                <Button
+                  className="h-[39px] w-full gap-0"
                   leftIcon={<span className="text-[15px] font-bold">+</span>}
                   onClick={() => {
                     close()
