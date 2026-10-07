@@ -23,9 +23,11 @@ interface NavbarProps {
 export default function Navbar({ activeMenu }: NavbarProps) {
   const navigate = useNavigate()
   // 로그인·로그아웃으로 사용자 정보가 바뀌면 이 Navbar도 다시 그려지도록 구독해 둔다
-  useMe()
+  const me = useMe()
   const logout = useLogout()
   const loggedIn = Boolean(localStorage.getItem('accessToken'))
+  // 서버에는 따로 닉네임이 없어서 가입할 때 입력한 이름을 쓴다
+  const nickname = loggedIn ? me.data?.name : undefined
 
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLElement>(null)
@@ -60,35 +62,42 @@ export default function Navbar({ activeMenu }: NavbarProps) {
       ref={containerRef}
       className="bg-nav relative z-40 flex h-[72px] w-full max-w-[1400px] items-center justify-between rounded-2xl px-4 drop-shadow-[0_4px_10px_rgba(0,0,0,0.08)] md:px-6"
     >
-      <Link to="/" aria-label="ASKeep 홈">
+      <Link to="/" aria-label="ASKeep 홈" className="shrink-0">
         <NavbarLogo />
       </Link>
 
-      <button
-        type="button"
-        aria-label={open ? '메뉴 닫기' : '메뉴 열기'}
-        aria-expanded={open}
-        aria-controls={menuId}
-        onClick={() => setOpen((value) => !value)}
-        className="hover:bg-nav-selected -mr-2.5 flex size-10 cursor-pointer items-center justify-center rounded-full text-white"
-      >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.75"
-          strokeLinecap="round"
-          aria-hidden="true"
+      <div className="flex min-w-0 flex-1 items-center justify-end gap-3 pl-3">
+        {nickname && (
+          <span className="min-w-0 truncate text-xs text-white/70">
+            반가워요, {nickname}님
+          </span>
+        )}
+        <button
+          type="button"
+          aria-label={open ? '메뉴 닫기' : '메뉴 열기'}
+          aria-expanded={open}
+          aria-controls={menuId}
+          onClick={() => setOpen((value) => !value)}
+          className="hover:bg-nav-selected -mr-2.5 flex size-10 cursor-pointer items-center justify-center rounded-full text-white"
         >
-          {open ? (
-            <path d="M5 5l10 10M15 5L5 15" />
-          ) : (
-            <path d="M3 5h14M3 10h14M3 15h14" />
-          )}
-        </svg>
-      </button>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            {open ? (
+              <path d="M5 5l10 10M15 5L5 15" />
+            ) : (
+              <path d="M3 5h14M3 10h14M3 15h14" />
+            )}
+          </svg>
+        </button>
+      </div>
 
       {open && (
         <nav
