@@ -6,6 +6,10 @@
     system-ui, sans-serif;
   --font-brand: 'Inter', sans-serif;
 
+  --color-brand-blue: #4285f4;
+  --color-brand-red: #ea4335;
+  --color-brand-yellow: #fbbc04;
+  --color-brand-green: #34a853;
   --color-canvas: #f8fafc;
   --color-panel: #ffffff;
   --color-nav: #363636;
