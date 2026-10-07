@@ -1,6 +1,7 @@
 import { Analytics } from '@vercel/analytics/react'
 import { Navigate, Route, Routes } from 'react-router'
 
+import HomeRoute from '@/components/auth/HomeRoute'
 import RequireAuth from '@/components/auth/RequireAuth'
 import ArchivePage from '@/pages/ArchivePage'
 import AudienceSessionPage from '@/pages/AudienceSessionPage'
@@ -9,7 +10,6 @@ import LoginPage from '@/pages/LoginPage'
 import PresenterSessionPage from '@/pages/PresenterSessionPage'
 import PrivacyPolicyPage from '@/pages/PrivacyPolicyPage'
 import SessionFormPage from '@/pages/SessionFormPage'
-import SessionJoinPage from '@/pages/SessionJoinPage'
 import SessionMaterialsPage from '@/pages/SessionMaterialsPage'
 import SignupPage from '@/pages/SignupPage'
 
@@ -22,9 +22,9 @@ function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/faq" element={<FaqPage />} />
+        <Route path="/" element={<HomeRoute />} />
 
         <Route element={<RequireAuth />}>
-          <Route path="/" element={<SessionJoinPage />} />
           <Route path="/archive" element={<ArchivePage />} />
           <Route path="/sessions/new" element={<SessionFormPage />} />
           <Route
