@@ -8,11 +8,10 @@ import { cn } from '@/utils/cn'
 
 export type NavMenu = 'join' | 'archive' | 'faq'
 
-/** to가 없는 메뉴는 아직 화면이 없는 항목이다 */
 const menus: { key: NavMenu; label: string; to?: string }[] = [
   { key: 'join', label: '세션 참여', to: '/' },
   { key: 'archive', label: '아카이브', to: '/archive' },
-  { key: 'faq', label: 'FAQ' },
+  { key: 'faq', label: 'FAQ', to: '/faq' },
 ]
 
 const itemClassName =
@@ -54,8 +53,8 @@ export default function Navbar({ activeMenu }: NavbarProps) {
 
   const close = () => setOpen(false)
 
-  // 로그인이 필요한 화면들은 로그아웃 상태에서 누르면 다시 로그인으로 돌아오므로 보여주지 않는다
-  const visibleMenus = loggedIn ? menus : []
+  // 로그인이 필요한 화면들은 로그아웃 상태에서 누르면 다시 로그인으로 돌아오므로 FAQ만 보여준다
+  const visibleMenus = menus.filter(({ key }) => loggedIn || key === 'faq')
 
   return (
     <header
