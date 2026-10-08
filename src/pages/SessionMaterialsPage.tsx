@@ -1,7 +1,8 @@
-import { useState } from 'react'
-import { Link, Navigate, useNavigate, useParams } from 'react-router'
+import { useRef, useState } from 'react'
+import { Navigate, useNavigate, useParams } from 'react-router'
 
 import { getApiErrorMessage } from '@/api/client'
+import { deleteMaterial as deleteMaterialRequest } from '@/api/session'
 import Button from '@/components/common/Button'
 import Callout from '@/components/common/Callout'
 import PageLayout from '@/components/common/PageLayout'
@@ -9,6 +10,7 @@ import SessionNavbar from '@/components/common/SessionNavbar'
 import EndSessionModal from '@/components/presenter/EndSessionModal'
 import EntryCodeBanner from '@/components/session/EntryCodeBanner'
 import MaterialDropzone from '@/components/session/MaterialDropzone'
+import LeaveMaterialsModal from '@/components/session/LeaveMaterialsModal'
 import MaterialItem from '@/components/session/MaterialItem'
 import SessionStepHeader from '@/components/session/SessionStepHeader'
 import { useMe } from '@/hooks/useAuth'
@@ -22,6 +24,7 @@ import {
   useUploadSessionMaterial,
 } from '@/hooks/useSession'
 import Icon from '@/components/common/Icon'
+import Spinner from '@/components/common/Spinner'
 import BrandEyebrow from '@/components/common/BrandEyebrow'
 import Card from '@/components/common/Card'
 
@@ -39,6 +42,9 @@ function SessionMaterialsContent({ sessionId }: { sessionId: number }) {
   const [uploading, setUploading] = useState(false)
   const [uploadErrors, setUploadErrors] = useState<string[]>([])
   const [endOpen, setEndOpen] = useState(false)
+  const [leaveTarget, setLeaveTarget] = useState<string | null>(null)
+  const [leaving, setLeaving] = useState(false)
+  const leftRef = useRef(false)
 
   if (session.data && me.data && session.data.presenterId !== me.data.userId) {
     return <Navigate to="/" replace />
@@ -47,6 +53,10 @@ function SessionMaterialsContent({ sessionId }: { sessionId: number }) {
   const items = materials.data?.items ?? []
   const status = session.data?.status
   const busy = deleteMaterial.isPending || retryMaterial.isPending
+  const inProgressIds = items
+    .filter(({ status }) => status === 'PENDING' || status === 'PROCESSING')
+    .map(({ id }) => id)
+  const registering = uploading || inProgressIds.length > 0
 
   const handleFiles = async (files: File[]) => {
     setUploading(true)
@@ -54,8 +64,15 @@ function SessionMaterialsContent({ sessionId }: { sessionId: number }) {
 
     // 서버가 파일 하나씩 받으므로 순서대로 올린다
     for (const file of files) {
+      if (leftRef.current) break
+
       try {
-        await upload.mutateAsync(file)
+        const material = await upload.mutateAsync(file)
+
+        // 올리는 도중에 화면을 떠났다면 방금 올라간 자료도 지운다
+        if (leftRef.current) {
+          await deleteMaterialRequest(material.id).catch(() => undefined)
+        }
       } catch (error) {
         setUploadErrors((errors) => [
           ...errors,
@@ -67,14 +84,40 @@ function SessionMaterialsContent({ sessionId }: { sessionId: number }) {
     setUploading(false)
   }
 
+  // 등록·분석 중이면 확인을 받고 이동한다
+  const guardedNavigate = (path: string) => {
+    if (registering) {
+      setLeaveTarget(path)
+      return
+    }
+
+    navigate(path)
+  }
+
+  const handleLeaveConfirm = async () => {
+    if (!leaveTarget) return
+
+    setLeaving(true)
+    leftRef.current = true
+    await Promise.allSettled(inProgressIds.map(deleteMaterialRequest))
+    navigate(leaveTarget)
+  }
+
   const handleStart = () => {
+    const presentPath = `/sessions/${sessionId}/present`
+
+    if (registering) {
+      setLeaveTarget(presentPath)
+      return
+    }
+
     if (status && status !== 'READY') {
-      navigate(`/sessions/${sessionId}/present`)
+      navigate(presentPath)
       return
     }
 
     start.mutate(undefined, {
-      onSuccess: () => navigate(`/sessions/${sessionId}/present`),
+      onSuccess: () => navigate(presentPath),
     })
   }
 
@@ -187,15 +230,21 @@ function SessionMaterialsContent({ sessionId }: { sessionId: number }) {
           )}
 
           <div className="border-line flex items-center justify-between gap-3 border-t pt-[33px]">
-            <Link
-              to={`/sessions/${sessionId}/edit`}
-              className="text-ink-button flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-base"
+            <button
+              type="button"
+              onClick={() => guardedNavigate(`/sessions/${sessionId}/edit`)}
+              className="text-ink-button flex cursor-pointer items-center gap-1.5 rounded-lg px-4 py-2.5 text-base"
             >
-              <Icon name="arrow-left-small" className="size-3" />
+              {registering ? (
+                <Spinner />
+              ) : (
+                <Icon name="arrow-left-small" className="size-3" />
+              )}
               이전 단계
-            </Link>
+            </button>
             <Button
               disabled={start.isPending || !session.data}
+              leftIcon={registering ? <Spinner /> : undefined}
               onClick={handleStart}
             >
               세션 시작하기
@@ -203,6 +252,13 @@ function SessionMaterialsContent({ sessionId }: { sessionId: number }) {
           </div>
         </Card>
       </main>
+
+      <LeaveMaterialsModal
+        open={leaveTarget !== null}
+        pending={leaving}
+        onClose={() => setLeaveTarget(null)}
+        onConfirm={handleLeaveConfirm}
+      />
 
       <EndSessionModal
         open={endOpen}
