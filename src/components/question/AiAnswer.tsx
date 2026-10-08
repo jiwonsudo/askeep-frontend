@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import LoadingDots from '@/components/common/LoadingDots'
 import Icon from '@/components/common/Icon'
 import Button from '@/components/common/Button'
 import Markdown from '@/components/common/Markdown'
@@ -21,7 +22,8 @@ export default function AiAnswer({ question }: AiAnswerProps) {
   if (question.aiStatus === 'PENDING' || question.aiStatus === 'PROCESSING') {
     return (
       <p className={hintClassName}>
-        자료를 바탕으로 AI가 답변을 준비하고 있어요.
+        자료를 바탕으로 AI가 답변을 준비하고 있어요
+        <LoadingDots />
       </p>
     )
   }
