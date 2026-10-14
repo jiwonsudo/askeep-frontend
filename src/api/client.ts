@@ -1,5 +1,7 @@
 import axios, { isAxiosError } from 'axios'
 
+import { expireAccessToken, getAccessToken } from '@/utils/authStorage'
+
 interface ApiEnvelope {
   success: boolean
   data?: unknown
@@ -26,7 +28,7 @@ export const apiClient = axios.create({
 })
 
 apiClient.interceptors.request.use((config) => {
-  const accessToken = localStorage.getItem('accessToken')
+  const accessToken = getAccessToken()
 
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`
@@ -45,8 +47,17 @@ apiClient.interceptors.response.use(
     return response
   },
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('accessToken')
+    // 로그인 실패나 로그아웃 요청의 401은 "세션 만료"가 아니므로 제외한다
+    const isAuthRequest = /\/users\/auth\/(login|logout)$/.test(
+      error.config?.url ?? '',
+    )
+
+    if (
+      error.response?.status === 401 &&
+      !isAuthRequest &&
+      localStorage.getItem('accessToken')
+    ) {
+      expireAccessToken()
     }
 
     return Promise.reject(error)
