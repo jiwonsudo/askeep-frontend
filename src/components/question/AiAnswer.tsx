@@ -1,7 +1,9 @@
 import { useState } from 'react'
 
+import LoadingDots from '@/components/common/LoadingDots'
 import Icon from '@/components/common/Icon'
 import Button from '@/components/common/Button'
+import Markdown from '@/components/common/Markdown'
 import { useRetryAiAnswer } from '@/hooks/useQuestion'
 import type { Question } from '@/types/question'
 
@@ -20,7 +22,8 @@ export default function AiAnswer({ question }: AiAnswerProps) {
   if (question.aiStatus === 'PENDING' || question.aiStatus === 'PROCESSING') {
     return (
       <p className={hintClassName}>
-        자료를 바탕으로 AI가 답변을 준비하고 있어요.
+        자료를 바탕으로 AI가 답변을 준비하고 있어요
+        <LoadingDots />
       </p>
     )
   }
@@ -68,9 +71,7 @@ export default function AiAnswer({ question }: AiAnswerProps) {
           자료 기반 자동 답변
         </span>
       </div>
-      <p className="text-ink pt-2 text-sm break-words whitespace-pre-wrap">
-        {aiAnswer.content}
-      </p>
+      <Markdown className="text-ink pt-2 text-sm">{aiAnswer.content}</Markdown>
       <div className="border-info-line mt-2 flex items-center justify-between gap-3 border-t pt-[9px]">
         <span className="text-ink-button text-xs font-medium">
           ∗ 발표 슬라이드 내용을 바탕으로 작성된 답변입니다.

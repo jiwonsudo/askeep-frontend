@@ -5,6 +5,7 @@ import LogoutConfirmModal from '@/components/auth/LogoutConfirmModal'
 import Button from '@/components/common/Button'
 import NavbarLogo from '@/components/common/NavbarLogo'
 import { useLogout, useMe } from '@/hooks/useAuth'
+import { hasAccessToken } from '@/utils/authStorage'
 import { cn } from '@/utils/cn'
 
 export type NavMenu = 'join' | 'archive' | 'faq'
@@ -26,7 +27,7 @@ export default function Navbar({ activeMenu }: NavbarProps) {
   // 로그인·로그아웃으로 사용자 정보가 바뀌면 이 Navbar도 다시 그려지도록 구독해 둔다
   const me = useMe()
   const logout = useLogout()
-  const loggedIn = Boolean(localStorage.getItem('accessToken'))
+  const loggedIn = hasAccessToken()
   // 서버에는 따로 닉네임이 없어서 가입할 때 입력한 이름을 쓴다
   const nickname = loggedIn ? me.data?.name : undefined
 

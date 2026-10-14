@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import Card from '@/components/common/Card'
+import Markdown from '@/components/common/Markdown'
 import StatusTag from '@/components/common/StatusTag'
 import type { Question } from '@/types/question'
 
@@ -66,9 +67,9 @@ export default function ArchiveQuestionItem({
       {hasAnswer && expanded && (
         <div className="border-line mt-4 flex flex-col gap-3 border-t pt-[17px]">
           {aiAnswer && (
-            <p className="bg-canvas border-canvas-subtle text-ink rounded-[10px] border p-[17px] text-base break-words whitespace-pre-wrap">
+            <Markdown className="bg-canvas border-canvas-subtle text-ink rounded-[10px] border p-[17px] text-base">
               {aiAnswer.content}
-            </p>
+            </Markdown>
           )}
           {presenterAnswers.map((answer) => (
             <div

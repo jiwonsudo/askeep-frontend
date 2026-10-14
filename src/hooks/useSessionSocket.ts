@@ -2,6 +2,7 @@ import { Client } from '@stomp/stompjs'
 import { useEffect, useRef } from 'react'
 
 import type { SessionTopicEvent } from '@/types/realtime'
+import { getAccessToken } from '@/utils/authStorage'
 
 /**
  * 환경 변수가 `/ws`처럼 경로만 있으면(개발 서버 프록시를 쓸 때) 지금 접속한 주소에 붙여서 완전한 웹소켓 주소로 만든다.
@@ -31,7 +32,7 @@ export const useSessionSocket = (
   useEffect(() => {
     if (!sessionId) return
 
-    const accessToken = localStorage.getItem('accessToken')
+    const accessToken = getAccessToken()
     if (!accessToken) return
 
     const client = new Client({

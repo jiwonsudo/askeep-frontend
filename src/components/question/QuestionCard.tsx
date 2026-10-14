@@ -42,15 +42,17 @@ export default function QuestionCard({ question }: QuestionCardProps) {
             {formatRelativeTime(question.createdAt)}
           </time>
         </div>
-        {/* 백엔드에 좋아요 API가 생기기 전까지는 누를 수 없게 둔다 */}
-        <Button
-          variant="secondary"
-          className="text-ink h-11 shrink-0"
-          disabled
-          title="아직 지원하지 않는 기능이에요"
-        >
-          나도 궁금해요
-        </Button>
+        {/* 백엔드에 좋아요 API가 생기기 전까지는 내 질문이 아닐 때만 보여 준다 */}
+        {!question.mine && (
+          <Button
+            variant="secondary"
+            className="text-ink h-11 shrink-0"
+            disabled
+            title="아직 지원하지 않는 기능이에요"
+          >
+            나도 궁금해요
+          </Button>
+        )}
       </header>
 
       <p className="text-ink pt-[13px] text-base leading-[25px] font-medium break-words whitespace-pre-wrap">

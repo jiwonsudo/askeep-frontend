@@ -1,6 +1,7 @@
 import { Analytics } from '@vercel/analytics/react'
 import { Navigate, Route, Routes } from 'react-router'
 
+import AuthExpiryWatcher from '@/components/auth/AuthExpiryWatcher'
 import HomeRoute from '@/components/auth/HomeRoute'
 import RequireAuth from '@/components/auth/RequireAuth'
 import ArchivePage from '@/pages/ArchivePage'
@@ -17,6 +18,7 @@ function App() {
   return (
     <>
       <Analytics />
+      <AuthExpiryWatcher />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
