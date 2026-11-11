@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Navigate, useParams } from 'react-router'
 
 import { getApiErrorMessage } from '@/api/client'
@@ -7,15 +8,16 @@ import QuestionCard from '@/components/question/QuestionCard'
 import EntryCodeBanner from '@/components/session/EntryCodeBanner'
 import QuestionForm from '@/components/session/QuestionForm'
 import SlideViewer from '@/components/session/SlideViewer'
+import type { SlidePosition } from '@/components/session/SlideViewer'
 import { useMe } from '@/hooks/useAuth'
 import { useQuestions } from '@/hooks/useQuestion'
 import { useSession } from '@/hooks/useSession'
 import { useSessionRealtime } from '@/hooks/useSessionRealtime'
-import { loadEntryCode } from '@/utils/entryCodeStorage'
 import BrandEyebrow from '@/components/common/BrandEyebrow'
 import StateMessage from '@/components/common/StateMessage'
 import BackLink from '@/components/common/BackLink'
 import Card from '@/components/common/Card'
+import type { AnswerSource } from '@/types/question'
 
 interface AudienceSessionContentProps {
   sessionId: number
@@ -26,16 +28,26 @@ function AudienceSessionContent({ sessionId }: AudienceSessionContentProps) {
   const session = useSession(sessionId)
   const questions = useQuestions(sessionId)
   useSessionRealtime(sessionId)
+  const [slide, setSlide] = useState<SlidePosition>({ page: 1 })
 
   // 내가 발표자인 세션은 청자 화면이 아니라 발표자 화면으로 보낸다
   if (session.data && me.data && session.data.presenterId === me.data.userId) {
     return <Navigate to={`/sessions/${sessionId}/present`} replace />
   }
 
-  // 서버는 청자에게 입장 코드를 주지 않아서, 입장할 때 입력해 둔 코드를 대신 보여준다
-  const entryCode =
-    session.data?.entryCode ??
-    (me.data ? loadEntryCode(me.data.userId, sessionId) : undefined)
+  const entryCode = session.data?.entryCode
+  const status = session.data?.status
+  const live = status === 'ONGOING' || status === 'ACTIVE'
+
+  // AI 답변의 출처를 누르면 그 슬라이드를 펼쳐 보여준다
+  const showSource = ({ materialId, pageNumber }: AnswerSource) => {
+    if (pageNumber === null) return
+
+    setSlide({ materialId, page: pageNumber })
+    document
+      .getElementById('slide-viewer')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }
 
   // 최신 질문이 위로 오도록 정렬
   const items = [...(questions.data?.items ?? [])].sort((a, b) => b.id - a.id)
@@ -57,7 +69,7 @@ function AudienceSessionContent({ sessionId }: AudienceSessionContentProps) {
           </p>
         ) : (
           <>
-            {entryCode && session.data?.status !== 'ENDED' && (
+            {entryCode && status !== 'ENDED' && (
               <div className="mt-6 lg:mt-9">
                 <EntryCodeBanner
                   entryCode={entryCode}
@@ -67,11 +79,12 @@ function AudienceSessionContent({ sessionId }: AudienceSessionContentProps) {
             )}
             <div className="mt-6 grid items-start gap-6 lg:mt-9 lg:grid-cols-2">
               <div className="flex flex-col gap-6">
-                <SlideViewer />
-                <QuestionForm
+                <SlideViewer
                   sessionId={sessionId}
-                  status={session.data?.status}
+                  position={slide}
+                  onPositionChange={setSlide}
                 />
+                <QuestionForm sessionId={sessionId} status={status} />
               </div>
 
               <Card as="section" className="border-line-soft p-6 sm:p-8">
@@ -105,7 +118,12 @@ function AudienceSessionContent({ sessionId }: AudienceSessionContentProps) {
                     </StateMessage>
                   )}
                   {items.map((question) => (
-                    <QuestionCard key={question.id} question={question} />
+                    <QuestionCard
+                      key={question.id}
+                      question={question}
+                      live={live}
+                      onSourceSelect={showSource}
+                    />
                   ))}
                 </div>
               </Card>

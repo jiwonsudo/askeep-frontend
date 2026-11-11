@@ -2,6 +2,7 @@ import { apiClient } from '@/api/client'
 import type {
   CreateSessionRequest,
   JoinByEntryCodeRequest,
+  MaterialPages,
   MySession,
   MySessionsQuery,
   ParticipantResponse,
@@ -118,6 +119,25 @@ export const getMaterial = async (materialId: number) => {
 
 export const deleteMaterial = async (materialId: number) => {
   await apiClient.delete(`/materials/${materialId}`)
+}
+
+export const getMaterialPages = async (materialId: number) => {
+  const { data } = await apiClient.get<MaterialPages>(
+    `/materials/${materialId}/pages`,
+  )
+  return data
+}
+
+/** 로그인 토큰이 필요한 주소라 `<img src>`로 바로 쓸 수 없어서 이미지 데이터로 받는다 */
+export const getMaterialPageImage = async (
+  materialId: number,
+  pageNumber: number,
+) => {
+  const { data } = await apiClient.get<Blob>(
+    `/materials/${materialId}/pages/${pageNumber}/image`,
+    { responseType: 'blob' },
+  )
+  return data
 }
 
 export const retryMaterial = async (materialId: number) => {

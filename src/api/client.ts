@@ -23,6 +23,10 @@ export const getApiErrorMessage = (error: unknown, fallback: string) => {
   return fallback
 }
 
+/** 서버가 410을 주면 올린 자료의 원본 PDF가 서버에서 사라진 것이다 (서버 재시작 때 지워질 수 있다) */
+export const isMissingOriginal = (error: unknown) =>
+  isAxiosError(error) && error.response?.status === 410
+
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
 })

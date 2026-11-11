@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 import type { QueryClient } from '@tanstack/react-query'
 
 import {
@@ -7,6 +12,8 @@ import {
   deleteSession,
   endSession,
   getMaterial,
+  getMaterialPageImage,
+  getMaterialPages,
   getMySessions,
   getSession,
   getSessionMaterials,
@@ -19,6 +26,7 @@ import {
   updateSession,
   uploadSessionMaterial,
 } from '@/api/session'
+import { isMissingOriginal } from '@/api/client'
 import type { MySessionsQuery, SessionsQuery } from '@/types/session'
 import { parseServerDate } from '@/utils/date'
 
@@ -30,6 +38,10 @@ export const sessionKeys = {
   materials: (sessionId: number) =>
     ['sessions', sessionId, 'materials'] as const,
   material: (materialId: number) => ['materials', materialId] as const,
+  materialPages: (materialId: number) =>
+    ['materials', materialId, 'pages'] as const,
+  materialPageImage: (materialId: number, pageNumber: number) =>
+    ['materials', materialId, 'pages', pageNumber, 'image'] as const,
   mine: (query?: MySessionsQuery) => ['sessions', 'mine', query] as const,
 }
 
@@ -219,6 +231,46 @@ export const useMaterial = (materialId: number) => {
     queryKey: sessionKeys.material(materialId),
     queryFn: () => getMaterial(materialId),
   })
+}
+
+/** 자료의 전체 페이지 수. 자료를 고르기 전에는 요청하지 않는다 */
+export const useMaterialPages = (materialId: number | undefined) => {
+  return useQuery({
+    queryKey: sessionKeys.materialPages(materialId ?? 0),
+    queryFn: () => getMaterialPages(materialId ?? 0),
+    enabled: materialId !== undefined,
+    staleTime: Infinity,
+  })
+}
+
+const materialPageImageOptions = (materialId: number, pageNumber: number) => ({
+  queryKey: sessionKeys.materialPageImage(materialId, pageNumber),
+  queryFn: () => getMaterialPageImage(materialId, pageNumber),
+  // 올린 자료의 페이지는 바뀌지 않으므로 한 번 받은 이미지는 다시 받지 않는다
+  staleTime: Infinity,
+  // 원본이 사라진 자료는 다시 요청해도 소용없다
+  retry: (failureCount: number, error: Error) =>
+    !isMissingOriginal(error) && failureCount < 1,
+})
+
+/** 슬라이드 한 장의 이미지. 다음 장을 받는 동안에는 보던 장을 그대로 돌려준다 */
+export const useMaterialPageImage = (
+  materialId: number | undefined,
+  pageNumber: number,
+) => {
+  return useQuery({
+    ...materialPageImageOptions(materialId ?? 0, pageNumber),
+    enabled: materialId !== undefined,
+    placeholderData: keepPreviousData,
+  })
+}
+
+/** 넘겼을 때 바로 보이도록 슬라이드 이미지를 미리 받아 둔다 */
+export const usePrefetchMaterialPageImage = () => {
+  const queryClient = useQueryClient()
+
+  return (materialId: number, pageNumber: number) =>
+    queryClient.prefetchQuery(materialPageImageOptions(materialId, pageNumber))
 }
 
 export const useDeleteMaterial = (sessionId: number) => {

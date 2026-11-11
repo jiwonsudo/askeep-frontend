@@ -155,7 +155,7 @@ function SessionMaterialsContent({ sessionId }: { sessionId: number }) {
             </p>
           </header>
 
-          <EntryCodeBanner entryCode={session.data?.entryCode} />
+          <EntryCodeBanner entryCode={session.data?.entryCode ?? undefined} />
 
           <MaterialDropzone
             uploading={uploading}

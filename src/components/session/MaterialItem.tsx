@@ -1,6 +1,8 @@
+import { isMissingOriginal } from '@/api/client'
 import Icon from '@/components/common/Icon'
 import Button from '@/components/common/Button'
 import StatusTag from '@/components/common/StatusTag'
+import { useMaterialPageImage } from '@/hooks/useSession'
 import { formatFileSize } from '@/utils/format'
 import type { ProcessStatus, SessionMaterial } from '@/types/session'
 
@@ -43,14 +45,28 @@ export default function MaterialItem({
   onDelete,
   onRetry,
 }: MaterialItemProps) {
-  const view = statusView[material.status]
+  // 서버가 재시작되면 원본 PDF가 지워질 수 있어서, 첫 장을 받아 보며 청자가 슬라이드를 볼 수 있는지 확인한다
+  const firstPage = useMaterialPageImage(
+    material.status === 'COMPLETED' ? material.id : undefined,
+    1,
+  )
+  const missingOriginal = isMissingOriginal(firstPage.error)
+  const view = missingOriginal
+    ? {
+        variant: 'danger' as const,
+        tag: '원본 없음',
+        text: '서버에서 원본이 지워져 청자가 슬라이드를 볼 수 없어요. 삭제하고 다시 올려 주세요',
+      }
+    : statusView[material.status]
 
   return (
     <li className="border-line flex items-center justify-between gap-3 rounded-lg border bg-white p-[17px]">
       <div className="flex min-w-0 flex-col">
         <span className="text-ink truncate text-base">{material.fileName}</span>
         <span className="text-ink-button text-xs font-medium">
-          {formatFileSize(material.fileSize)} • {view.text}
+          {formatFileSize(material.fileSize)}
+          {material.pageCount !== null && ` • ${material.pageCount}쪽`} •{' '}
+          {view.text}
         </span>
       </div>
       <div className="flex shrink-0 items-center gap-3">
