@@ -31,6 +31,34 @@ function SummaryBody({ sessionId }: { sessionId: number }) {
     return <p className={hintClassName}>요약을 불러오지 못했어요.</p>
   }
 
+  // 나뉘지 않은 요약은 서버가 요약 전체를 "세션 요약" 한 항목으로 주므로, 그때는 아래의 줄 단위 표시를 쓴다
+  const sections = data.sections ?? []
+  const structured =
+    sections.length > 1 ||
+    (sections.length === 1 && sections[0].description !== data.summary)
+
+  if (structured) {
+    return (
+      <ol className="flex flex-col gap-3.5">
+        {sections.map((section, index) => (
+          <li key={index} className="flex gap-1 text-base">
+            <span className="text-brand-deep w-[22.7px] shrink-0">
+              {index + 1}.
+            </span>
+            <div className="flex min-w-0 flex-col gap-1">
+              <h4 className="text-ink font-bold break-words">
+                {section.title}
+              </h4>
+              <p className="text-ink-sub text-sm break-words whitespace-pre-wrap">
+                {section.description}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    )
+  }
+
   const points = toPoints(data.summary)
 
   if (points.length <= 1) {

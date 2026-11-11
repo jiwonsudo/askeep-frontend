@@ -3,12 +3,13 @@ import { useState } from 'react'
 import Card from '@/components/common/Card'
 import Markdown from '@/components/common/Markdown'
 import StatusTag from '@/components/common/StatusTag'
+import AnswerSources from '@/components/question/AnswerSources'
 import type { Question } from '@/types/question'
+import { formatAuthorName } from '@/utils/format'
 
 interface ArchiveQuestionItemProps {
   question: Question
   order: number
-  defaultExpanded: boolean
 }
 
 const itemButtonClassName =
@@ -17,17 +18,16 @@ const itemButtonClassName =
 export default function ArchiveQuestionItem({
   question,
   order,
-  defaultExpanded,
 }: ArchiveQuestionItemProps) {
-  const [expanded, setExpanded] = useState(defaultExpanded)
+  // 처음에는 질문만 보여주고, 펼치면 답변까지 보여준다
+  const [expanded, setExpanded] = useState(false)
 
   const aiAnswer = question.answers.find((answer) => answer.type === 'AI')
   const presenterAnswers = question.answers.filter(
     (answer) => answer.type === 'PRESENTER',
   )
   const hasAnswer = Boolean(aiAnswer) || presenterAnswers.length > 0
-  const authorName =
-    question.anonymous || !question.author ? '익명' : question.author.username
+  const authorName = formatAuthorName(question)
 
   return (
     <Card as="li" className="flex flex-col rounded-lg p-[21px]">
@@ -46,6 +46,8 @@ export default function ArchiveQuestionItem({
                 <StatusTag variant="info">자료 기반 자동 답변</StatusTag>
               ) : presenterAnswers.length > 0 ? (
                 <StatusTag variant="request">발표자 답변</StatusTag>
+              ) : question.answered ? (
+                <StatusTag variant="success">현장에서 답변 완료</StatusTag>
               ) : (
                 <StatusTag variant="neutral">기록된 답변이 없어요.</StatusTag>
               )}
@@ -67,9 +69,12 @@ export default function ArchiveQuestionItem({
       {hasAnswer && expanded && (
         <div className="border-line mt-4 flex flex-col gap-3 border-t pt-[17px]">
           {aiAnswer && (
-            <Markdown className="bg-canvas border-canvas-subtle text-ink rounded-[10px] border p-[17px] text-base">
-              {aiAnswer.content}
-            </Markdown>
+            <div className="bg-canvas border-canvas-subtle flex flex-col gap-3 rounded-[10px] border p-[17px]">
+              <Markdown className="text-ink text-base">
+                {aiAnswer.content}
+              </Markdown>
+              <AnswerSources sources={aiAnswer.sources} />
+            </div>
           )}
           {presenterAnswers.map((answer) => (
             <div

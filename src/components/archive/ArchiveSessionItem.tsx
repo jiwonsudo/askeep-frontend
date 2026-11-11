@@ -2,7 +2,7 @@ import ArchiveQuestionList from '@/components/archive/ArchiveQuestionList'
 import SessionSummary from '@/components/archive/SessionSummary'
 import Button from '@/components/common/Button'
 import StatusTag from '@/components/common/StatusTag'
-import { formatDate } from '@/utils/date'
+import { formatDate, formatTimeRange } from '@/utils/date'
 import type { MySession, ProcessStatus } from '@/types/session'
 import Card from '@/components/common/Card'
 import { cn } from '@/utils/cn'
@@ -31,7 +31,9 @@ export default function ArchiveSessionItem({
   expanded,
   onToggle,
 }: ArchiveSessionItemProps) {
-  const { session, summaryStatus, myRole } = item
+  const { session, summaryStatus, myRole, questionCount } = item
+  // 발표자가 세션을 시작·종료한 시각
+  const period = formatTimeRange(session.startedAt, session.endedAt)
   const tag = summaryTag[summaryStatus ?? 'NONE']
 
   return (
@@ -44,7 +46,7 @@ export default function ArchiveSessionItem({
     >
       <div className="flex flex-col gap-3 p-[25px]">
         <header className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <StatusTag variant={tag.variant}>{tag.label}</StatusTag>
             <StatusTag variant={myRole === 'PRESENTER' ? 'request' : 'neutral'}>
               {myRole === 'PRESENTER' ? '발표자' : '청자'}
@@ -52,6 +54,9 @@ export default function ArchiveSessionItem({
             <time className="text-ink-sub text-xs font-medium">
               {formatDate(session.endedAt ?? session.createdAt)}
             </time>
+            <span className="text-ink-sub text-xs font-medium">
+              질문 {questionCount}개
+            </span>
           </div>
           <Button
             variant="outline"
@@ -67,6 +72,11 @@ export default function ArchiveSessionItem({
           <h2 className="text-ink text-base">{session.title}</h2>
           {session.description && (
             <p className="text-ink-sub text-sm">{session.description}</p>
+          )}
+          {period && (
+            <p className="text-ink-muted text-xs font-medium">
+              진행 일시 {period}
+            </p>
           )}
         </div>
 

@@ -1,19 +1,37 @@
-import { useQueries } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useLocation } from 'react-router'
 
-import { getSessionSummary } from '@/api/session'
 import { getApiErrorMessage } from '@/api/client'
 import ArchiveSessionItem from '@/components/archive/ArchiveSessionItem'
 import Chip from '@/components/common/Chip'
+import Icon from '@/components/common/Icon'
 import PageLayout from '@/components/common/PageLayout'
-import { sessionKeys, useMySessions } from '@/hooks/useSession'
+import { useMySessions } from '@/hooks/useSession'
 import { parseServerDate } from '@/utils/date'
 import BrandEyebrow from '@/components/common/BrandEyebrow'
 import StateMessage from '@/components/common/StateMessage'
 import BackLink from '@/components/common/BackLink'
+import type { MySession } from '@/types/session'
 
 const normalizeTag = (tag: string) => tag.replace(/^#/, '').trim()
+
+type SortOrder = 'latest' | 'title'
+
+const SORT_OPTIONS: { value: SortOrder; label: string }[] = [
+  { value: 'latest', label: '최신순' },
+  { value: 'title', label: '제목순' },
+]
+
+const endedTime = ({ session }: MySession) =>
+  parseServerDate(session.endedAt ?? session.createdAt).getTime()
+
+const compare: Record<SortOrder, (a: MySession, b: MySession) => number> = {
+  // 최근에 끝난 세션부터
+  latest: (a, b) => endedTime(b) - endedTime(a),
+  title: (a, b) =>
+    a.session.title.localeCompare(b.session.title, 'ko') ||
+    endedTime(b) - endedTime(a),
+}
 
 export default function ArchivePage() {
   const mySessions = useMySessions()
@@ -23,39 +41,32 @@ export default function ArchivePage() {
     (location.state as { expandedId?: number } | null)?.expandedId,
   )
   const [selectedTag, setSelectedTag] = useState<string>()
+  const [tagsOpen, setTagsOpen] = useState(false)
+  const [keyword, setKeyword] = useState('')
+  const [sortOrder, setSortOrder] = useState<SortOrder>('latest')
 
-  // 종료된 세션만 아카이브에 보여주고, 최근에 끝난 순으로 정렬한다
+  // 종료된 세션만 아카이브에 보여준다
   const archived = (mySessions.data ?? [])
     .filter(({ session }) => session.status === 'ENDED')
-    .sort(
-      (a, b) =>
-        parseServerDate(b.session.endedAt ?? b.session.createdAt).getTime() -
-        parseServerDate(a.session.endedAt ?? a.session.createdAt).getTime(),
+    .sort(compare[sortOrder])
+
+  // 태그 칩은 전체 목록에서 모아야 해서, 서버의 태그 필터 대신 받아 둔 목록에서 거른다
+  const tagsOf = ({ tags }: MySession) => tags.map(normalizeTag).filter(Boolean)
+  const allTags = [...new Set(archived.flatMap(tagsOf))]
+
+  // 제목·설명·태그에서 찾는다. 대소문자는 구분하지 않는다
+  const query = keyword.trim().toLowerCase()
+  const matches = (item: MySession) =>
+    [item.session.title, item.session.description ?? '', ...tagsOf(item)].some(
+      (text) => text.toLowerCase().includes(query),
     )
 
-  // 태그는 요약 응답에만 있어서, 요약이 끝난 세션의 요약을 가져와 모은다
-  const summarized = archived.filter(
-    ({ summaryStatus }) => summaryStatus === 'COMPLETED',
+  const visible = archived.filter(
+    (item) =>
+      (!selectedTag || tagsOf(item).includes(selectedTag)) &&
+      (!query || matches(item)),
   )
-  const summaries = useQueries({
-    queries: summarized.map(({ session }) => ({
-      queryKey: sessionKeys.summary(session.sessionId),
-      queryFn: () => getSessionSummary(session.sessionId),
-    })),
-  })
-
-  const tagsBySession = new Map<number, string[]>()
-  summarized.forEach(({ session }, index) => {
-    const tags = summaries[index]?.data?.tags ?? []
-    tagsBySession.set(session.sessionId, tags.map(normalizeTag).filter(Boolean))
-  })
-
-  const allTags = [...new Set([...tagsBySession.values()].flat())]
-  const visible = selectedTag
-    ? archived.filter(({ session }) =>
-        tagsBySession.get(session.sessionId)?.includes(selectedTag),
-      )
-    : archived
+  const filtering = Boolean(selectedTag || query)
 
   return (
     <PageLayout activeMenu="archive">
@@ -77,8 +88,50 @@ export default function ArchivePage() {
             </div>
           </div>
 
-          {allTags.length > 0 && (
-            <div className="flex gap-2.5 overflow-x-auto pb-1">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
+            <input
+              type="search"
+              aria-label="세션 검색"
+              placeholder="세션 제목·내용·태그로 검색"
+              value={keyword}
+              onChange={(event) => setKeyword(event.target.value)}
+              className="border-line placeholder:text-ink-muted focus:border-brand-deep h-11 min-w-0 flex-1 rounded-lg border bg-white px-4 text-sm font-medium outline-none"
+            />
+            <div className="flex shrink-0 items-center justify-between gap-2.5">
+              <select
+                aria-label="정렬"
+                value={sortOrder}
+                onChange={(event) =>
+                  setSortOrder(event.target.value as SortOrder)
+                }
+                className="border-line text-ink h-11 cursor-pointer rounded-lg border bg-white px-3 text-sm font-medium"
+              >
+                {SORT_OPTIONS.map(({ value, label }) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              {allTags.length > 0 && (
+                <button
+                  type="button"
+                  aria-expanded={tagsOpen}
+                  aria-controls="archive-tags"
+                  onClick={() => setTagsOpen((open) => !open)}
+                  className="border-line text-ink-button hover:bg-canvas-subtle flex h-11 cursor-pointer items-center gap-1 rounded-lg border bg-white pr-2 pl-3.5 text-sm font-medium transition"
+                >
+                  {selectedTag ? `태그: ${selectedTag}` : '태그로 보기'}
+                  <Icon
+                    name="chevron-down-gray"
+                    className={`size-5 transition ${tagsOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {allTags.length > 0 && tagsOpen && (
+            <div id="archive-tags" className="flex flex-wrap gap-2">
               <Chip
                 selected={selectedTag === undefined}
                 onClick={() => setSelectedTag(undefined)}
@@ -113,8 +166,8 @@ export default function ArchivePage() {
             )}
             {mySessions.isSuccess && visible.length === 0 && (
               <StateMessage className="py-10">
-                {selectedTag
-                  ? '이 태그의 세션이 없어요.'
+                {filtering
+                  ? '조건에 맞는 세션이 없어요.'
                   : '아직 종료된 세션이 없어요.'}
               </StateMessage>
             )}
@@ -122,7 +175,7 @@ export default function ArchivePage() {
               <ArchiveSessionItem
                 key={item.session.sessionId}
                 item={item}
-                tags={tagsBySession.get(item.session.sessionId) ?? []}
+                tags={tagsOf(item)}
                 expanded={expandedId === item.session.sessionId}
                 onToggle={() =>
                   setExpandedId((current) =>

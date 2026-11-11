@@ -44,7 +44,6 @@ export default function ArchiveQuestionList({
             key={question.id}
             question={question}
             order={index + 1}
-            defaultExpanded={index === 0}
           />
         ))}
       </ul>
