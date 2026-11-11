@@ -4,9 +4,9 @@ import type { FormEvent } from 'react'
 import { getApiErrorMessage } from '@/api/client'
 import Button from '@/components/common/Button'
 import Textarea from '@/components/common/Textarea'
-import { isVerbalAnswer } from '@/components/presenter/verbalAnswer'
 import { useDeleteAnswer, useUpdateAnswer } from '@/hooks/useQuestion'
 import type { Question } from '@/types/question'
+import { getAnswerResolution } from '@/utils/answerResolution'
 
 type Mode = { type: 'closed' } | { type: 'edit'; answerId: number }
 
@@ -25,11 +25,9 @@ export default function PresenterAnswers({ question }: PresenterAnswersProps) {
   const updateAnswer = useUpdateAnswer(question.id)
   const deleteAnswer = useDeleteAnswer(question.id)
 
-  const presenterAnswers = question.answers.filter(
+  const written = question.answers.filter(
     (answer) => answer.type === 'PRESENTER',
   )
-  const written = presenterAnswers.filter((answer) => !isVerbalAnswer(answer))
-  const hasVerbal = presenterAnswers.some(isVerbalAnswer)
 
   const submitting = updateAnswer.isPending
   const error = updateAnswer.error ?? deleteAnswer.error
@@ -56,9 +54,14 @@ export default function PresenterAnswers({ question }: PresenterAnswersProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      {hasVerbal && (
+      {getAnswerResolution(question) === 'VERBAL' && (
         <p className="text-ink-muted text-xs font-medium">
           현장에서 말로 답변했어요.
+        </p>
+      )}
+      {getAnswerResolution(question) === 'AI' && (
+        <p className="text-ink-muted text-xs font-medium">
+          AI 답변으로 마무리했어요.
         </p>
       )}
 

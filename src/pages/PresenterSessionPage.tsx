@@ -17,9 +17,6 @@ import BackLink from '@/components/common/BackLink'
 import BrandEyebrow from '@/components/common/BrandEyebrow'
 import StateMessage from '@/components/common/StateMessage'
 
-const isAnswered = (question: Question) =>
-  question.answers.some((answer) => answer.type === 'PRESENTER')
-
 function PresenterSessionContent({ sessionId }: { sessionId: number }) {
   const navigate = useNavigate()
   const me = useMe()
@@ -36,13 +33,14 @@ function PresenterSessionContent({ sessionId }: { sessionId: number }) {
 
   const ended = session.data?.status === 'ENDED'
 
-  // 아직 답하지 않은 질문을 위로, 같은 상태끼리는 최신 질문부터 보여준다
-  const likes = (question: Question) => question.likeCount ?? 0
+  // 아직 답하지 않은 질문을 위로, 그 안에서는 공감이 많은 순 → 직접 답변을 요청한 질문 → 최신 순
+  const likes = (question: Question) => question.likeCount
   const all = questions.data?.items ?? []
   const items = [...all].sort(
     (a, b) =>
-      Number(isAnswered(a)) - Number(isAnswered(b)) ||
+      Number(a.answered) - Number(b.answered) ||
       likes(b) - likes(a) ||
+      Number(b.presenterRequested) - Number(a.presenterRequested) ||
       b.id - a.id,
   )
   // 공감이 더 많은 질문의 수 + 1이 순위. 공감이 없으면 순위를 매기지 않는다

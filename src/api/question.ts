@@ -59,6 +59,38 @@ export const retryAiAnswer = async (questionId: number) => {
   return data
 }
 
+/** 발표자만 가능 */
+export const setQuestionAnswered = async (
+  questionId: number,
+  answered: boolean,
+) => {
+  const { data } = await apiClient.request<Question>({
+    method: answered ? 'put' : 'delete',
+    url: `/questions/${questionId}/answered`,
+  })
+  return data
+}
+
+export const setQuestionLiked = async (questionId: number, liked: boolean) => {
+  const { data } = await apiClient.request<Question>({
+    method: liked ? 'put' : 'delete',
+    url: `/questions/${questionId}/like`,
+  })
+  return data
+}
+
+/** 질문 작성자만, 진행 중인 세션에서만 가능 */
+export const setPresenterRequested = async (
+  questionId: number,
+  requested: boolean,
+) => {
+  const { data } = await apiClient.request<Question>({
+    method: requested ? 'post' : 'delete',
+    url: `/questions/${questionId}/presenter-request`,
+  })
+  return data
+}
+
 export const getAnswers = async (questionId: number) => {
   const { data } = await apiClient.get<Answer[]>(
     `/questions/${questionId}/answers`,

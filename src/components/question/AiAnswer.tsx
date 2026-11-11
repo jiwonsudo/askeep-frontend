@@ -4,16 +4,19 @@ import LoadingDots from '@/components/common/LoadingDots'
 import Icon from '@/components/common/Icon'
 import Button from '@/components/common/Button'
 import Markdown from '@/components/common/Markdown'
+import AnswerSources from '@/components/question/AnswerSources'
 import { useRetryAiAnswer } from '@/hooks/useQuestion'
-import type { Question } from '@/types/question'
+import type { AnswerSource, Question } from '@/types/question'
 
 interface AiAnswerProps {
   question: Question
+  /** 주면 답변 출처를 눌러 그 슬라이드로 이동할 수 있다 */
+  onSourceSelect?: (source: AnswerSource) => void
 }
 
 const hintClassName = 'text-ink-muted text-xs font-medium'
 
-export default function AiAnswer({ question }: AiAnswerProps) {
+export default function AiAnswer({ question, onSourceSelect }: AiAnswerProps) {
   const [expanded, setExpanded] = useState(false)
   const { mutate: retry, isPending } = useRetryAiAnswer(question.id)
 
@@ -72,6 +75,11 @@ export default function AiAnswer({ question }: AiAnswerProps) {
         </span>
       </div>
       <Markdown className="text-ink pt-2 text-sm">{aiAnswer.content}</Markdown>
+      {aiAnswer.sources.length > 0 && (
+        <div className="pt-2">
+          <AnswerSources sources={aiAnswer.sources} onSelect={onSourceSelect} />
+        </div>
+      )}
       <div className="border-info-line mt-2 flex items-center justify-between gap-3 border-t pt-[9px]">
         <span className="text-ink-button text-xs font-medium">
           ∗ 발표 슬라이드 내용을 바탕으로 작성된 답변입니다.

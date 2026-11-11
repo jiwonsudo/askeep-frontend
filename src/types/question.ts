@@ -1,11 +1,21 @@
 import type { ProcessStatus } from '@/types/session'
 
-export type AiStatus = ProcessStatus
+/** NO_EVIDENCE는 자료에 근거가 없어 AI가 답하지 않은 경우 */
+export type AiStatus = ProcessStatus | 'NO_EVIDENCE'
 export type AnswerType = 'AI' | 'PRESENTER'
+export type QuestionSort = 'latest' | 'popular'
 
 export interface UserSummary {
   id: number
   username: string
+}
+
+/** AI 답변이 참고한 자료의 위치 */
+export interface AnswerSource {
+  materialId: number
+  fileName: string | null
+  pageNumber: number | null
+  similarity: number | null
 }
 
 export interface Answer {
@@ -14,30 +24,35 @@ export interface Answer {
   content: string
   type: AnswerType
   author: UserSummary | null
+  sources: AnswerSource[]
   createdAt: string
 }
 
-/** 날짜는 서버 기준 한국 시간이며 타임존 표기가 없다 */
+/** 날짜는 `2026-11-20T14:00:00+09:00`처럼 시간대가 붙어서 온다 */
 export interface Question {
   id: number
   sessionId: number
   content: string
   anonymous: boolean
+  /** 익명 질문은 발표자와 작성자 본인에게만 내려온다 */
   author: UserSummary | null
   aiStatus: AiStatus
   answers: Answer[]
   createdAt: string
   updatedAt: string
+  /** 발표자가 "답변 완료"로 표시했는지. 발표자가 답변을 달면 자동으로 켜진다 */
+  answered: boolean
+  answeredAt: string | null
+  /** 작성자가 발표자에게 직접 답변을 요청했는지 */
+  presenterRequested: boolean
+  presenterRequestedAt: string | null
+  /** "나도 궁금해요" 수 */
+  likeCount: number
   /**
-   * 내가 쓴 질문인지. Swagger에는 있지만 dev 서버 응답에는 아직 내려오지 않아서
-   * 화면에서는 `useQuestions`가 작성자 ID로 채운 값을 쓴다
+   * 보는 사람마다 다른 값이라 웹소켓 알림에는 빠져서 온다.
+   * 알림으로 질문을 갱신할 때는 `useSessionRealtime`이 기존 값을 지킨다
    */
   mine?: boolean
-  /**
-   * "나도 궁금해요" 수와 내가 눌렀는지 여부. 백엔드에 좋아요 API가 아직 없어서
-   * 응답에 오지 않으면 화면에서는 0으로 보여준다
-   */
-  likeCount?: number
   likedByMe?: boolean
 }
 
@@ -54,7 +69,9 @@ export interface UpdateQuestionRequest {
 export interface GetQuestionsQuery {
   page?: number
   size?: number
+  /** afterId는 latest 정렬에서만 쓸 수 있다 */
   afterId?: number
+  sort?: QuestionSort
 }
 
 export interface CreateAnswerRequest {

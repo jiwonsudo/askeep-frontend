@@ -25,7 +25,7 @@ interface QuestionFormProps {
 }
 
 export default function QuestionForm({ sessionId, status }: QuestionFormProps) {
-  const disabled = status !== 'ONGOING'
+  const disabled = status !== 'ONGOING' && status !== 'ACTIVE'
   const [content, setContent] = useState('')
   const [anonymous, setAnonymous] = useState(true)
   const {
