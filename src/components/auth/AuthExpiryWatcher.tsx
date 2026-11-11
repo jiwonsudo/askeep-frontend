@@ -7,7 +7,6 @@ import {
   getAccessToken,
   getTokenExpiresAt,
 } from '@/utils/authStorage'
-import { clearEntryCodes } from '@/utils/entryCodeStorage'
 
 // setTimeout은 약 24.8일(2^31ms)을 넘기면 바로 실행되므로 그 아래로 제한한다
 const MAX_TIMEOUT = 2 ** 31 - 1
@@ -24,7 +23,6 @@ export default function AuthExpiryWatcher() {
   // 만료 이벤트(타이머·401 응답·토큰 확인 중 발견)를 받으면 정리하고 로그인으로 보낸다
   useEffect(() => {
     const handleExpired = () => {
-      clearEntryCodes()
       queryClient.clear()
       navigate('/login', { replace: true })
     }

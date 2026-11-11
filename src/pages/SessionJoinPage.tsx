@@ -10,7 +10,7 @@ import PageLayout from '@/components/common/PageLayout'
 import MyLiveSessions from '@/components/session/MyLiveSessions'
 import { useMe } from '@/hooks/useAuth'
 import { useJoinSessionByEntryCode } from '@/hooks/useSession'
-import { saveEntryCode } from '@/utils/entryCodeStorage'
+import { unhideSession } from '@/utils/hiddenSessionStorage'
 import Icon from '@/components/common/Icon'
 
 const ENTRY_CODE_LENGTH = 6
@@ -34,8 +34,8 @@ export default function SessionJoinPage() {
       { entryCode },
       {
         onSuccess: ({ sessionId }) => {
-          // 서버는 청자에게 입장 코드를 안 주므로, 입력한 코드를 기억해 세션 화면에서 다시 보여준다
-          if (me.data) saveEntryCode(me.data.userId, sessionId, entryCode)
+          // 목록에서 숨겼던 세션이라도 다시 들어오면 다시 보여준다
+          if (me.data) unhideSession(me.data.userId, sessionId)
           navigate(`/sessions/${sessionId}`)
         },
       },
