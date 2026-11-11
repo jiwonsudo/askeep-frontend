@@ -12,12 +12,14 @@ import PageLayout from '@/components/common/PageLayout'
 import { useSignup } from '@/hooks/useAuth'
 
 const NAME_MAX_LENGTH = 30
+const DEPARTMENT_MAX_LENGTH = 50
 const PASSWORD_MIN_LENGTH = 8
 const PASSWORD_MAX_LENGTH = 64
 
 export default function SignupPage() {
   const signup = useSignup()
   const [name, setName] = useState('')
+  const [department, setDepartment] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
@@ -34,6 +36,7 @@ export default function SignupPage() {
 
   const canSubmit =
     name.trim().length > 0 &&
+    department.trim().length > 0 &&
     email.trim().length > 0 &&
     password.length >= PASSWORD_MIN_LENGTH &&
     passwordConfirm === password &&
@@ -45,7 +48,12 @@ export default function SignupPage() {
     if (!canSubmit) return
 
     signup.mutate(
-      { name: name.trim(), email: email.trim(), password },
+      {
+        name: name.trim(),
+        department: department.trim(),
+        email: email.trim(),
+        password,
+      },
       { onSuccess: () => setCompleteOpen(true) },
     )
   }
@@ -53,6 +61,7 @@ export default function SignupPage() {
   const handleClose = () => {
     setCompleteOpen(false)
     setName('')
+    setDepartment('')
     setEmail('')
     setPassword('')
     setPasswordConfirm('')
@@ -82,6 +91,15 @@ export default function SignupPage() {
             maxLength={NAME_MAX_LENGTH}
             value={name}
             onChange={(event) => setName(event.target.value)}
+          />
+          <Input
+            label="학과"
+            required
+            autoComplete="organization-title"
+            placeholder="예: 컴퓨터과학과"
+            maxLength={DEPARTMENT_MAX_LENGTH}
+            value={department}
+            onChange={(event) => setDepartment(event.target.value)}
           />
           <Input
             label="이메일"

@@ -6,6 +6,7 @@ import { getApiErrorMessage } from '@/api/client'
 import PasswordInput from '@/components/auth/PasswordInput'
 import Button from '@/components/common/Button'
 import Callout from '@/components/common/Callout'
+import Checkbox from '@/components/common/Checkbox'
 import Icon from '@/components/common/Icon'
 import Input from '@/components/common/Input'
 import AuthCard from '@/components/auth/AuthCard'
@@ -16,6 +17,11 @@ import {
   hasAccessToken,
   hasExpiredNotice,
 } from '@/utils/authStorage'
+import {
+  clearSavedEmail,
+  loadSavedEmail,
+  saveEmail,
+} from '@/utils/savedEmailStorage'
 
 interface LocationState {
   from?: { pathname: string; search?: string }
@@ -25,7 +31,11 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const login = useLogin()
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(loadSavedEmail)
+  // 저장된 이메일이 있으면 저장을 켜 둔 것으로 본다
+  const [rememberEmail, setRememberEmail] = useState(() =>
+    Boolean(loadSavedEmail()),
+  )
   const [password, setPassword] = useState('')
   // 로그인이 만료돼 넘어온 경우에만 안내를 보여준다 (새로고침해도 한 번은 남도록 화면을 떠날 때 지운다)
   const [expired] = useState(hasExpiredNotice)
@@ -51,10 +61,14 @@ export default function LoginPage() {
     login.mutate(
       { email: email.trim(), password },
       {
-        onSuccess: () =>
+        onSuccess: () => {
+          if (rememberEmail) saveEmail(email.trim())
+          else clearSavedEmail()
+
           navigate(from ? from.pathname + (from.search ?? '') : '/', {
             replace: true,
-          }),
+          })
+        },
       },
     )
   }
@@ -100,7 +114,14 @@ export default function LoginPage() {
             autoComplete="current-password"
             placeholder="비밀번호를 입력해주세요."
             value={password}
+            autoFocus={Boolean(email)}
             onChange={(event) => setPassword(event.target.value)}
+          />
+          <Checkbox
+            label="아이디 저장"
+            className="text-sm"
+            checked={rememberEmail}
+            onChange={(event) => setRememberEmail(event.target.checked)}
           />
           {login.isError && (
             <p role="alert" className="text-danger text-xs font-medium">
@@ -113,6 +134,12 @@ export default function LoginPage() {
           <Button type="submit" disabled={!canSubmit}>
             로그인
           </Button>
+          <Link
+            to="/password-reset"
+            className="text-ink-sub self-center text-sm underline underline-offset-2"
+          >
+            비밀번호를 잊으셨나요?
+          </Link>
         </form>
       </AuthCard>
     </PageLayout>

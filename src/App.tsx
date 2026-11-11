@@ -8,6 +8,8 @@ import ArchivePage from '@/pages/ArchivePage'
 import AudienceSessionPage from '@/pages/AudienceSessionPage'
 import FaqPage from '@/pages/FaqPage'
 import LoginPage from '@/pages/LoginPage'
+import MyPage from '@/pages/MyPage'
+import PasswordResetPage from '@/pages/PasswordResetPage'
 import PresenterSessionPage from '@/pages/PresenterSessionPage'
 import PrivacyPolicyPage from '@/pages/PrivacyPolicyPage'
 import SessionFormPage from '@/pages/SessionFormPage'
@@ -22,12 +24,14 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/password-reset" element={<PasswordResetPage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/faq" element={<FaqPage />} />
         <Route path="/" element={<HomeRoute />} />
 
         <Route element={<RequireAuth />}>
           <Route path="/archive" element={<ArchivePage />} />
+          <Route path="/me" element={<MyPage />} />
           <Route path="/sessions/new" element={<SessionFormPage />} />
           <Route
             path="/sessions/:sessionId"

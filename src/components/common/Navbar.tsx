@@ -8,11 +8,12 @@ import { useLogout, useMe } from '@/hooks/useAuth'
 import { hasAccessToken } from '@/utils/authStorage'
 import { cn } from '@/utils/cn'
 
-export type NavMenu = 'join' | 'archive' | 'faq'
+export type NavMenu = 'join' | 'archive' | 'faq' | 'me'
 
 const menus: { key: NavMenu; label: string; to?: string }[] = [
   { key: 'archive', label: '아카이브', to: '/archive' },
   { key: 'faq', label: 'FAQ', to: '/faq' },
+  { key: 'me', label: '내 정보', to: '/me' },
 ]
 
 const itemClassName =

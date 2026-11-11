@@ -1,13 +1,22 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { getMe, login, logout, signup } from '@/api/auth'
+import {
+  changePassword,
+  confirmPasswordReset,
+  getMe,
+  login,
+  logout,
+  requestPasswordReset,
+  signup,
+  updateProfile,
+  withdraw,
+} from '@/api/auth'
 import {
   clearAccessToken,
   clearExpiredNotice,
   getAccessToken,
   saveAccessToken,
 } from '@/utils/authStorage'
-import { clearEntryCodes } from '@/utils/entryCodeStorage'
 
 export const meQueryKey = ['me'] as const
 
@@ -46,9 +55,57 @@ export const useLogout = () => {
     onSettled: () => {
       clearAccessToken()
       clearExpiredNotice()
-      clearEntryCodes()
       // 다른 계정의 데이터가 남지 않도록 캐시를 모두 비운다
       queryClient.clear()
     },
+  })
+}
+
+export const useUpdateProfile = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: updateProfile,
+    onSuccess: (user) => {
+      queryClient.setQueryData(meQueryKey, user)
+    },
+  })
+}
+
+export const useChangePassword = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: changePassword,
+    // 서버가 기존 토큰을 모두 무효로 만들고 새 토큰을 주므로 바꿔 끼운다
+    onSuccess: ({ accessToken, user }) => {
+      saveAccessToken(accessToken)
+      queryClient.setQueryData(meQueryKey, user)
+    },
+  })
+}
+
+export const useWithdraw = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: withdraw,
+    onSuccess: () => {
+      clearAccessToken()
+      clearExpiredNotice()
+      queryClient.clear()
+    },
+  })
+}
+
+export const useRequestPasswordReset = () => {
+  return useMutation({
+    mutationFn: requestPasswordReset,
+  })
+}
+
+export const useConfirmPasswordReset = () => {
+  return useMutation({
+    mutationFn: confirmPasswordReset,
   })
 }
