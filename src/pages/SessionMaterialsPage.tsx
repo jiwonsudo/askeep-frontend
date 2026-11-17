@@ -202,6 +202,19 @@ function SessionMaterialsContent({ sessionId }: { sessionId: number }) {
                 아직 등록된 파일이 없어요.
               </p>
             )}
+            {(deleteMaterial.isError || retryMaterial.isError) && (
+              <p role="alert" className="text-danger text-xs font-medium">
+                {deleteMaterial.isError
+                  ? getApiErrorMessage(
+                      deleteMaterial.error,
+                      '파일을 삭제하지 못했어요.',
+                    )
+                  : getApiErrorMessage(
+                      retryMaterial.error,
+                      '분석을 다시 시도하지 못했어요.',
+                    )}
+              </p>
+            )}
             <ul className="flex flex-col gap-3">
               {items.map((material) => (
                 <MaterialItem
