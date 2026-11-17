@@ -7,6 +7,7 @@ import RequireAuth from '@/components/auth/RequireAuth'
 import ArchivePage from '@/pages/ArchivePage'
 import AudienceSessionPage from '@/pages/AudienceSessionPage'
 import FaqPage from '@/pages/FaqPage'
+import JoinLinkPage from '@/pages/JoinLinkPage'
 import LoginPage from '@/pages/LoginPage'
 import MyPage from '@/pages/MyPage'
 import PasswordResetPage from '@/pages/PasswordResetPage'
@@ -30,6 +31,8 @@ function App() {
         <Route path="/" element={<HomeRoute />} />
 
         <Route element={<RequireAuth />}>
+          {/* 로그인 전이면 로그인 화면을 거쳐 이 주소로 돌아온다 */}
+          <Route path="/join/:entryCode" element={<JoinLinkPage />} />
           <Route path="/archive" element={<ArchivePage />} />
           <Route path="/me" element={<MyPage />} />
           <Route path="/sessions/new" element={<SessionFormPage />} />

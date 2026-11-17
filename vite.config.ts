@@ -17,6 +17,15 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), tailwindcss()],
+    build: {
+      rollupOptions: {
+        // join.html은 공유 링크(/join/:entryCode) 미리보기 문구만 다른 같은 앱이다
+        input: {
+          main: path.resolve(import.meta.dirname, 'index.html'),
+          join: path.resolve(import.meta.dirname, 'join.html'),
+        },
+      },
+    },
     resolve: {
       alias: {
         '@': path.resolve(import.meta.dirname, './src'),
