@@ -145,7 +145,9 @@ export const useStartSession = (sessionId: number) => {
 
   return useMutation({
     mutationFn: () => startSession(sessionId),
-    onSuccess: async () => {
+    onSuccess: async (session) => {
+      // 발표 화면이 예전(시작 전) 상태를 잠깐이라도 보여주지 않게 받은 값을 바로 넣어 둔다
+      queryClient.setQueryData(sessionKeys.detail(sessionId), session)
       queryClient.invalidateQueries({
         queryKey: sessionKeys.detail(sessionId),
       })

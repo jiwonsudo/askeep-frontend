@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router'
 
 import { getApiErrorMessage } from '@/api/client'
@@ -8,7 +8,6 @@ import Callout from '@/components/common/Callout'
 import PageLayout from '@/components/common/PageLayout'
 import SessionNavbar from '@/components/common/SessionNavbar'
 import EndSessionModal from '@/components/presenter/EndSessionModal'
-import EntryCodeBanner from '@/components/session/EntryCodeBanner'
 import MaterialDropzone from '@/components/session/MaterialDropzone'
 import LeaveMaterialsModal from '@/components/session/LeaveMaterialsModal'
 import MaterialItem from '@/components/session/MaterialItem'
@@ -45,18 +44,56 @@ function SessionMaterialsContent({ sessionId }: { sessionId: number }) {
   const [leaveTarget, setLeaveTarget] = useState<string | null>(null)
   const [leaving, setLeaving] = useState(false)
   const leftRef = useRef(false)
+  // 서버는 분석 중인 자료를 지우지 못하게 막는다(409). 그래서 삭제를 누르면 바로 지운 것처럼 숨기고,
+  // 분석이 끝나는 대로 조용히 지운다. 실패해도 사용자에게 알리지 않는다
+  const [queuedDeleteIds, setQueuedDeleteIds] = useState<number[]>([])
+  const deletingIdsRef = useRef(new Set<number>())
+  const { refetch: refetchMaterials } = materials
+
+  useEffect(() => {
+    const items = materials.data?.items
+    if (!items) return
+
+    for (const id of queuedDeleteIds) {
+      const material = items.find((item) => item.id === id)
+      const settled =
+        material?.status === 'COMPLETED' || material?.status === 'FAILED'
+
+      if (!material) {
+        setQueuedDeleteIds((ids) => ids.filter((queued) => queued !== id))
+      } else if (settled && !deletingIdsRef.current.has(id)) {
+        deletingIdsRef.current.add(id)
+        deleteMaterialRequest(id)
+          .then(() => refetchMaterials())
+          .catch(() => undefined)
+          .finally(() => deletingIdsRef.current.delete(id))
+      }
+    }
+  }, [materials.data, queuedDeleteIds, refetchMaterials])
 
   if (session.data && me.data && session.data.presenterId !== me.data.userId) {
     return <Navigate to="/" replace />
   }
 
-  const items = materials.data?.items ?? []
+  const items = (materials.data?.items ?? []).filter(
+    ({ id }) => !queuedDeleteIds.includes(id),
+  )
   const status = session.data?.status
   const busy = deleteMaterial.isPending || retryMaterial.isPending
+  // 숨긴 자료는 이미 지운 것으로 보고, 등록 중 표시나 나가기 확인에 넣지 않는다
   const inProgressIds = items
     .filter(({ status }) => status === 'PENDING' || status === 'PROCESSING')
     .map(({ id }) => id)
   const registering = uploading || inProgressIds.length > 0
+
+  const handleDelete = (id: number, status: string) => {
+    if (status === 'PENDING' || status === 'PROCESSING') {
+      setQueuedDeleteIds((ids) => [...ids, id])
+      return
+    }
+
+    deleteMaterial.mutate(id)
+  }
 
   const handleFiles = async (files: File[]) => {
     setUploading(true)
@@ -100,12 +137,26 @@ function SessionMaterialsContent({ sessionId }: { sessionId: number }) {
     setLeaving(true)
     leftRef.current = true
     await Promise.allSettled(inProgressIds.map(deleteMaterialRequest))
+
+    // 발표 시작으로 나가는 경우엔 세션도 시작해야 발표 화면에서 바로 질문을 받는다
+    if (leaveTarget === presentPath && status === 'READY') {
+      try {
+        await start.mutateAsync()
+      } catch {
+        setLeaving(false)
+        setLeaveTarget(null)
+        return
+      }
+    }
+
     navigate(leaveTarget)
   }
 
-  const handleStart = () => {
-    const presentPath = `/sessions/${sessionId}/present`
+  const presentPath = `/sessions/${sessionId}/present`
 
+  const handleStart = () => {
+    // 올리는 중이거나 분석 중인 자료가 있으면 삭제된다고 확인을 받는다.
+    // 분석 중이던 자료를 이미 삭제했다면(목록에서 숨김) 여기에 걸리지 않고 바로 시작한다
     if (registering) {
       setLeaveTarget(presentPath)
       return
@@ -155,8 +206,6 @@ function SessionMaterialsContent({ sessionId }: { sessionId: number }) {
             </p>
           </header>
 
-          <EntryCodeBanner entryCode={session.data?.entryCode ?? undefined} />
-
           <MaterialDropzone
             uploading={uploading}
             onFiles={handleFiles}
@@ -186,7 +235,7 @@ function SessionMaterialsContent({ sessionId }: { sessionId: number }) {
             <div className="flex items-center gap-2">
               <h2 className="text-ink text-xl font-bold">등록된 파일</h2>
               <span className="bg-line text-ink-button rounded-full px-2 py-0.5 text-[13px] font-semibold">
-                {materials.data?.totalElements ?? 0}
+                {items.length}
               </span>
             </div>
             {materials.isError && !materials.data && (
@@ -221,7 +270,7 @@ function SessionMaterialsContent({ sessionId }: { sessionId: number }) {
                   key={material.id}
                   material={material}
                   busy={busy}
-                  onDelete={() => deleteMaterial.mutate(material.id)}
+                  onDelete={() => handleDelete(material.id, material.status)}
                   onRetry={() => retryMaterial.mutate(material.id)}
                 />
               ))}
@@ -257,7 +306,9 @@ function SessionMaterialsContent({ sessionId }: { sessionId: number }) {
             </button>
             <Button
               disabled={start.isPending || !session.data}
-              leftIcon={registering ? <Spinner /> : undefined}
+              leftIcon={
+                registering || start.isPending ? <Spinner /> : undefined
+              }
               onClick={handleStart}
             >
               세션 시작하기
