@@ -10,6 +10,7 @@ import {
   createSession,
   deleteMaterial,
   deleteSession,
+  downloadMaterial,
   endSession,
   getMaterial,
   getMaterialPageImage,
@@ -224,6 +225,29 @@ export const useUploadSessionMaterial = (sessionId: number) => {
       queryClient.invalidateQueries({
         queryKey: sessionKeys.materials(sessionId),
       })
+    },
+  })
+}
+
+/** 받은 파일을 브라우저의 다운로드로 저장한다 */
+const saveFile = (blob: Blob, fileName: string) => {
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = fileName
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  // 클릭 직후 바로 해제하면 일부 브라우저에서 저장이 취소돼서 조금 뒤에 해제한다
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+/** 발표자료 원본 PDF 내려받기 */
+export const useDownloadMaterial = () => {
+  return useMutation({
+    mutationFn: async ({ id, fileName }: { id: number; fileName: string }) => {
+      const file = await downloadMaterial(id, fileName)
+      saveFile(file.blob, file.fileName)
     },
   })
 }

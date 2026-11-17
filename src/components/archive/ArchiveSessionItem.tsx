@@ -1,3 +1,4 @@
+import ArchiveMaterialList from '@/components/archive/ArchiveMaterialList'
 import ArchiveQuestionList from '@/components/archive/ArchiveQuestionList'
 import SessionSummary from '@/components/archive/SessionSummary'
 import Button from '@/components/common/Button'
@@ -128,6 +129,7 @@ export default function ArchiveSessionItem({
             summaryStatus={summaryStatus}
             canRetry={myRole === 'PRESENTER'}
           />
+          <ArchiveMaterialList sessionId={session.sessionId} />
           <ArchiveQuestionList sessionId={session.sessionId} />
         </div>
       )}
