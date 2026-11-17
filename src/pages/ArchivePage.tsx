@@ -6,12 +6,13 @@ import ArchiveSessionItem from '@/components/archive/ArchiveSessionItem'
 import Chip from '@/components/common/Chip'
 import Icon from '@/components/common/Icon'
 import PageLayout from '@/components/common/PageLayout'
-import { useMySessions } from '@/hooks/useSession'
+import DeleteSessionModal from '@/components/session/DeleteSessionModal'
+import { useDeleteSession, useMySessions } from '@/hooks/useSession'
 import { parseServerDate } from '@/utils/date'
 import BrandEyebrow from '@/components/common/BrandEyebrow'
 import StateMessage from '@/components/common/StateMessage'
 import BackLink from '@/components/common/BackLink'
-import type { MySession } from '@/types/session'
+import type { MySession, Session } from '@/types/session'
 
 const normalizeTag = (tag: string) => tag.replace(/^#/, '').trim()
 
@@ -44,6 +45,13 @@ export default function ArchivePage() {
   const [tagsOpen, setTagsOpen] = useState(false)
   const [keyword, setKeyword] = useState('')
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest')
+  const deleteSession = useDeleteSession()
+  const [deleteTarget, setDeleteTarget] = useState<Session>()
+
+  const closeDelete = () => {
+    setDeleteTarget(undefined)
+    deleteSession.reset()
+  }
 
   // 종료된 세션만 아카이브에 보여준다
   const archived = (mySessions.data ?? [])
@@ -95,7 +103,7 @@ export default function ArchivePage() {
               placeholder="세션 제목·내용·태그로 검색"
               value={keyword}
               onChange={(event) => setKeyword(event.target.value)}
-              className="border-line placeholder:text-ink-muted focus:border-brand-deep h-11 min-w-0 flex-1 rounded-lg border bg-white px-4 text-sm font-medium outline-none"
+              className="border-line placeholder:text-ink-muted focus:border-brand-deep h-11 w-full min-w-0 rounded-lg border bg-white px-4 text-base font-medium outline-none sm:flex-1 sm:text-sm"
             />
             <div className="flex shrink-0 items-center justify-between gap-2.5">
               <select
@@ -104,7 +112,7 @@ export default function ArchivePage() {
                 onChange={(event) =>
                   setSortOrder(event.target.value as SortOrder)
                 }
-                className="border-line text-ink h-11 cursor-pointer rounded-lg border bg-white px-3 text-sm font-medium"
+                className="border-line text-ink h-11 cursor-pointer rounded-lg border bg-white px-3 text-base font-medium sm:text-sm"
               >
                 {SORT_OPTIONS.map(({ value, label }) => (
                   <option key={value} value={value}>
@@ -177,6 +185,11 @@ export default function ArchivePage() {
                 item={item}
                 tags={tagsOf(item)}
                 expanded={expandedId === item.session.sessionId}
+                onDelete={
+                  item.myRole === 'PRESENTER'
+                    ? () => setDeleteTarget(item.session)
+                    : undefined
+                }
                 onToggle={() =>
                   setExpandedId((current) =>
                     current === item.session.sessionId
@@ -189,6 +202,22 @@ export default function ArchivePage() {
           </div>
         </div>
       </main>
+
+      <DeleteSessionModal
+        open={deleteTarget !== undefined}
+        title={deleteTarget?.title}
+        ended
+        pending={deleteSession.isPending}
+        error={deleteSession.error}
+        onClose={closeDelete}
+        onConfirm={() => {
+          if (!deleteTarget) return
+
+          deleteSession.mutate(deleteTarget.sessionId, {
+            onSuccess: closeDelete,
+          })
+        }}
+      />
     </PageLayout>
   )
 }
