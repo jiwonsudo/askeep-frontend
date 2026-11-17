@@ -3,7 +3,7 @@ import logoDotGreen from '@/assets/logo-dot-green.svg'
 
 export default function NavbarLogo() {
   return (
-    <div className="flex items-center gap-[9px]">
+    <div className="flex shrink-0 items-center gap-[9px]">
       <img src={logo} alt="" className="h-[21.3px] w-[26.7px]" />
       <div className="flex flex-col">
         <div className="flex">
@@ -14,7 +14,7 @@ export default function NavbarLogo() {
             eep
           </span>
         </div>
-        <span className="text-line mt-0.5 flex items-center gap-[2.85px] text-[6.6px] font-medium">
+        <span className="text-line mt-0.5 flex items-center gap-[2.85px] text-[6.6px] font-medium whitespace-nowrap">
           GDGoC SMU
           <i className="size-[3.79px] rounded-full bg-[#4285f4]" />
           <i className="size-[3.79px] rounded-full bg-[#ea4335]" />

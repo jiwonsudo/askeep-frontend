@@ -207,7 +207,7 @@ export default function SlideViewer({
                 page: 1,
               })
             }
-            className="border-line text-ink h-8 max-w-[50%] min-w-0 cursor-pointer truncate rounded-lg border bg-white px-2 text-xs font-medium"
+            className="border-line text-ink h-8 max-w-[50%] min-w-0 cursor-pointer truncate rounded-lg border bg-white px-2 text-base font-medium sm:text-xs"
           >
             {items.map(({ id, fileName }) => (
               <option key={id} value={id}>

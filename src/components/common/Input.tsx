@@ -46,7 +46,7 @@ export default function Input({
           aria-invalid={Boolean(error)}
           aria-describedby={error ? errorId : undefined}
           className={cn(
-            'placeholder:text-ink-muted h-12 w-full rounded-lg border px-[17px] text-sm font-medium outline-none',
+            'placeholder:text-ink-muted h-12 w-full rounded-lg border px-[17px] text-base font-medium outline-none sm:text-sm',
             error
               ? 'border-danger-line bg-danger-bg text-danger placeholder:text-danger'
               : 'border-line-strong focus:border-brand-deep focus:bg-canvas bg-white',

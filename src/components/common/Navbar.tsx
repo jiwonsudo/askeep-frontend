@@ -8,9 +8,11 @@ import { useLogout, useMe } from '@/hooks/useAuth'
 import { hasAccessToken } from '@/utils/authStorage'
 import { cn } from '@/utils/cn'
 
-export type NavMenu = 'join' | 'archive' | 'faq' | 'me'
+export type NavMenu = 'intro' | 'join' | 'archive' | 'faq' | 'me'
 
 const menus: { key: NavMenu; label: string; to?: string }[] = [
+  // 로그인하면 홈(/)이 입장 코드 화면이 되므로, 소개 화면은 로그인 전에만 보여 준다
+  { key: 'intro', label: '서비스 소개', to: '/' },
   { key: 'archive', label: '아카이브', to: '/archive' },
   { key: 'faq', label: 'FAQ', to: '/faq' },
   { key: 'me', label: '내 정보', to: '/me' },
@@ -59,13 +61,15 @@ export default function Navbar({ activeMenu }: NavbarProps) {
   const close = () => setOpen(false)
 
   // 로그인이 필요한 화면들은 로그아웃 상태에서 누르면 다시 로그인으로 돌아오므로 FAQ만 보여준다
-  const visibleMenus = menus.filter(({ key }) => loggedIn || key === 'faq')
+  const visibleMenus = menus.filter(({ key }) =>
+    loggedIn ? key !== 'intro' : key === 'intro' || key === 'faq',
+  )
 
   return (
     <>
       <header
         ref={containerRef}
-        className="bg-nav relative z-40 flex h-[72px] w-full max-w-[1400px] items-center justify-between rounded-2xl px-4 drop-shadow-[0_4px_10px_rgba(0,0,0,0.08)] md:px-6"
+        className="bg-nav relative z-40 flex h-[72px] w-full max-w-[1400px] items-center justify-between px-4 drop-shadow-[0_4px_10px_rgba(0,0,0,0.08)] md:rounded-2xl md:px-6"
       >
         <Link to="/" aria-label="ASKeep 홈" className="shrink-0">
           <NavbarLogo />
@@ -108,7 +112,7 @@ export default function Navbar({ activeMenu }: NavbarProps) {
           <nav
             id={menuId}
             aria-label="메뉴"
-            className="bg-nav absolute top-full right-0 mt-2 flex w-64 max-w-full flex-col gap-1 rounded-2xl p-2 shadow-[0_8px_24px_rgba(0,0,0,0.2)]"
+            className="bg-nav absolute top-full right-2 mt-2 flex w-64 max-w-full flex-col gap-1 rounded-2xl p-2 shadow-[0_8px_24px_rgba(0,0,0,0.2)] md:right-0"
           >
             {visibleMenus.map(({ key, label, to }) => {
               const className = cn(
@@ -176,22 +180,28 @@ export default function Navbar({ activeMenu }: NavbarProps) {
                 </div>
               </>
             ) : (
-              <>
-                <Link
-                  to="/login"
-                  onClick={close}
-                  className={cn(itemClassName, 'opacity-80 hover:opacity-100')}
+              // 로그인 전에는 로그인·회원가입이 주요 행동이라, 로그인 후의 세션 버튼처럼 아래에 버튼으로 강조한다
+              <div className="border-nav-selected mt-1 flex flex-col gap-2 border-t pt-3">
+                <Button
+                  className="h-[39px] w-full"
+                  onClick={() => {
+                    close()
+                    navigate('/login')
+                  }}
                 >
                   로그인
-                </Link>
-                <Link
-                  to="/signup"
-                  onClick={close}
-                  className={cn(itemClassName, 'opacity-80 hover:opacity-100')}
+                </Button>
+                <Button
+                  variant="ai"
+                  className="h-[39px] w-full"
+                  onClick={() => {
+                    close()
+                    navigate('/signup')
+                  }}
                 >
                   회원가입
-                </Link>
-              </>
+                </Button>
+              </div>
             )}
           </nav>
         )}

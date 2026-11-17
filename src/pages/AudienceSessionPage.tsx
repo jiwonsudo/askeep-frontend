@@ -77,7 +77,7 @@ function AudienceSessionContent({ sessionId }: AudienceSessionContentProps) {
                 />
               </div>
             )}
-            <div className="mt-6 grid items-start gap-6 lg:mt-9 lg:grid-cols-2">
+            <div className="mt-6 grid grid-cols-1 items-start gap-6 lg:mt-9 lg:grid-cols-2">
               <div className="flex flex-col gap-6">
                 <SlideViewer
                   sessionId={sessionId}
@@ -87,7 +87,7 @@ function AudienceSessionContent({ sessionId }: AudienceSessionContentProps) {
                 <QuestionForm sessionId={sessionId} status={status} />
               </div>
 
-              <Card as="section" className="border-line-soft p-6 sm:p-8">
+              <Card as="section" className="border-line-soft p-4 sm:p-8">
                 <div className="flex flex-col gap-1.5">
                   <BrandEyebrow />
                   <div className="border-line flex items-center gap-3 border-b pb-[25px]">

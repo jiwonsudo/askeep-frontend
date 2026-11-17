@@ -32,7 +32,9 @@ export default function Callout({
         <p className={cn('text-ink text-sm font-bold', titleClassName)}>
           {title}
         </p>
-        <p className="text-ink-button text-xs font-medium">{children}</p>
+        <p className="text-ink-button text-xs font-medium break-keep">
+          {children}
+        </p>
       </div>
     </div>
   )

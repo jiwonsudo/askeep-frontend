@@ -20,7 +20,8 @@ export default function PageLayout({
     <div className="bg-canvas flex min-h-screen flex-col items-center">
       {/* 스크롤바가 폭을 차지하는 환경에서는 왼쪽 여백이 오른쪽보다 좁아 보이므로, 스크롤바 폭만큼 왼쪽을 띄워 헤더와 본문이 창 가운데에 오게 한다 */}
       <div className="flex w-full flex-1 flex-col items-center pl-[calc(100vw_-_100%)]">
-        <div className="flex w-full justify-center px-4 pt-4 md:px-10 md:pt-6">
+        {/* 모바일에서는 헤더를 화면 폭에 꽉 채운다 */}
+        <div className="flex w-full justify-center md:px-10 md:pt-6">
           {navbar ?? <Navbar activeMenu={activeMenu} />}
         </div>
         {children}

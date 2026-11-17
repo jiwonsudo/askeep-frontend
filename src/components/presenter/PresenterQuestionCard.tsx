@@ -66,9 +66,9 @@ export default function PresenterQuestionCard({
   return (
     <Card
       as="article"
-      className="flex flex-col gap-2 p-[25px] drop-shadow-[0_1px_1px_rgba(0,0,0,0.05)]"
+      className="flex flex-col gap-2 p-4 drop-shadow-[0_1px_1px_rgba(0,0,0,0.05)] sm:p-[25px]"
     >
-      <div className="flex flex-col items-start gap-4 sm:flex-row sm:gap-6">
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:gap-6">
         <LikeRank count={question.likeCount} rank={rank} />
         <div className="flex min-w-0 flex-1 flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
@@ -93,7 +93,7 @@ export default function PresenterQuestionCard({
           </div>
 
           <h2
-            className={`text-xl font-bold break-words ${
+            className={`text-lg font-bold break-words sm:text-xl ${
               done ? 'text-ink-muted' : 'text-ink'
             }`}
           >
@@ -196,7 +196,7 @@ export default function PresenterQuestionCard({
         </div>
 
         {step === 'idle' && (
-          <div className="flex shrink-0 flex-col items-end gap-2 pt-0.5">
+          <div className="flex shrink-0 flex-row-reverse items-center gap-4 pt-0.5 sm:flex-col sm:items-end sm:gap-2">
             <Button
               variant={done ? 'secondary' : 'primary'}
               className={`h-[39px] ${done ? 'text-ink-muted' : ''}`}

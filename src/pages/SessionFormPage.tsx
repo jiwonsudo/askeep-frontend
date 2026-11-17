@@ -158,14 +158,14 @@ function SessionForm({ session }: SessionFormProps) {
         <div className="border-canvas flex items-center justify-end gap-3 border-t pt-px">
           <Link
             to="/"
-            className="text-ink-sub flex h-12 items-center rounded-lg px-6 text-[17px] font-bold"
+            className="text-ink-sub flex h-12 shrink-0 items-center rounded-lg px-4 text-[17px] font-bold whitespace-nowrap sm:px-6"
           >
             취소
           </Link>
           <Button
             type="submit"
             disabled={!canSubmit}
-            className="px-8 text-[17px]"
+            className="min-w-0 flex-1 px-5 text-[17px] whitespace-nowrap sm:flex-none sm:px-8"
             rightIcon={
               <Icon name="arrow-right-small" className="size-[13.3px]" />
             }

@@ -21,7 +21,8 @@ export default function LikeRank({ count, rank }: LikeRankProps) {
           : `공감 ${count}개, 공감 순위 ${rank}위`
       }
       className={cn(
-        'flex h-[89px] w-16 shrink-0 flex-col items-center gap-[3px] rounded-lg border px-[17px] py-[11px]',
+        // 모바일에서는 카드 위에 한 줄로 붙여 세로 공간을 아낀다
+        'flex h-8 shrink-0 flex-row items-center gap-1.5 rounded-lg border px-2.5 sm:h-[89px] sm:w-16 sm:flex-col sm:gap-[3px] sm:px-[17px] sm:py-[11px]',
         top
           ? 'border-info-bg bg-info-bg'
           : 'border-canvas-subtle bg-canvas-subtle',
@@ -29,17 +30,17 @@ export default function LikeRank({ count, rank }: LikeRankProps) {
     >
       <Icon
         name={top ? 'chevron-down-blue' : 'chevron-down-gray'}
-        className="size-5 rotate-180"
+        className="size-4 rotate-180 sm:size-5"
       />
       <span
         className={cn(
-          'text-xl leading-none font-bold',
+          'text-base leading-none font-bold sm:text-xl',
           top ? 'text-brand-deep' : 'text-[#1e293b]',
         )}
       >
         {count}
       </span>
-      <span className="text-ink-muted text-sm leading-none">
+      <span className="text-ink-muted text-xs leading-none sm:text-sm">
         {rank === null ? '-' : `${rank}위`}
       </span>
     </div>
