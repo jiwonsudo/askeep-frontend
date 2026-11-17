@@ -20,6 +20,8 @@ import iconFullscreen from '@/assets/icon-fullscreen.svg'
 import iconGithub from '@/assets/icon-github.svg'
 import iconInfo from '@/assets/icon-info.svg'
 import iconInstagram from '@/assets/icon-instagram.svg'
+import iconLink from '@/assets/icon-link.svg'
+import iconQr from '@/assets/icon-qr.svg'
 import iconKey from '@/assets/icon-key.svg'
 import iconLoading from '@/assets/icon-loading.svg'
 import iconPowerExit from '@/assets/icon-power-exit.svg'
@@ -58,6 +60,8 @@ const icons = {
   info: iconInfo,
   instagram: iconInstagram,
   key: iconKey,
+  link: iconLink,
+  qr: iconQr,
   loading: iconLoading,
   'power-exit': iconPowerExit,
   send: iconSend,

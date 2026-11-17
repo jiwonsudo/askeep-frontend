@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { useEffect, useId, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import Card from '@/components/common/Card'
 
 interface ModalProps {
@@ -27,7 +28,7 @@ export default function Modal({
       if (event.key === 'Escape') onClose()
     }
 
-    closeButtonRef.current?.focus()
+    closeButtonRef.current?.focus({ preventScroll: true })
     document.addEventListener('keydown', handleKeyDown)
 
     return () => document.removeEventListener('keydown', handleKeyDown)
@@ -35,7 +36,8 @@ export default function Modal({
 
   if (!open) return null
 
-  return (
+  // 조상에 filter가 있으면 position: fixed가 그 요소에 갇히므로 body에 바로 그린다
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
       onClick={onClose}
@@ -63,6 +65,7 @@ export default function Modal({
           닫기
         </button>
       </Card>
-    </div>
+    </div>,
+    document.body,
   )
 }
