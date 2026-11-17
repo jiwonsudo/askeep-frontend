@@ -9,6 +9,7 @@ import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import AuthCard from '@/components/auth/AuthCard'
 import PageLayout from '@/components/common/PageLayout'
+import SlowServerNotice from '@/components/common/SlowServerNotice'
 import { useSignup } from '@/hooks/useAuth'
 
 const NAME_MAX_LENGTH = 30
@@ -142,6 +143,7 @@ export default function SignupPage() {
           <Button type="submit" disabled={!canSubmit}>
             회원가입
           </Button>
+          <SlowServerNotice pending={signup.isPending} />
         </form>
       </AuthCard>
 

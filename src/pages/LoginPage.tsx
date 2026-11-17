@@ -11,6 +11,7 @@ import Icon from '@/components/common/Icon'
 import Input from '@/components/common/Input'
 import AuthCard from '@/components/auth/AuthCard'
 import PageLayout from '@/components/common/PageLayout'
+import SlowServerNotice from '@/components/common/SlowServerNotice'
 import { useLogin } from '@/hooks/useAuth'
 import {
   clearExpiredNotice,
@@ -134,6 +135,7 @@ export default function LoginPage() {
           <Button type="submit" disabled={!canSubmit}>
             로그인
           </Button>
+          <SlowServerNotice pending={login.isPending} />
           <Link
             to="/password-reset"
             className="text-ink-sub self-center text-sm underline underline-offset-2"
