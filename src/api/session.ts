@@ -1,3 +1,5 @@
+import { isAxiosError } from 'axios'
+
 import { apiClient } from '@/api/client'
 import type {
   CreateSessionRequest,
@@ -145,4 +147,50 @@ export const retryMaterial = async (materialId: number) => {
     `/materials/${materialId}/retry`,
   )
   return data
+}
+
+/** Content-Disposition에서 파일명을 꺼낸다. 한글 이름은 filename*=UTF-8''... 쪽에 들어 있다 */
+const parseFileName = (disposition: string | undefined) => {
+  if (!disposition) return undefined
+
+  const encoded = disposition.match(/filename\*=UTF-8''([^;]+)/i)
+  if (encoded) {
+    try {
+      return decodeURIComponent(encoded[1].trim())
+    } catch {
+      // 잘못 인코딩된 이름이면 아래의 일반 filename으로 넘어간다
+    }
+  }
+
+  return disposition.match(/filename="?([^";]+)"?/i)?.[1]
+}
+
+/**
+ * 발표자료 원본 PDF. 로그인 토큰이 필요해서 `<a href>`로 바로 받을 수 없으므로 파일 데이터로 받는다.
+ * 종료된 세션의 자료는 로그인한 누구나, 그 전에는 발표자·참여자만 받을 수 있다.
+ */
+export const downloadMaterial = async (
+  materialId: number,
+  fallbackName: string,
+) => {
+  try {
+    const response = await apiClient.get<Blob>(
+      `/materials/${materialId}/download`,
+      { responseType: 'blob' },
+    )
+    const fileName =
+      parseFileName(response.headers['content-disposition']) ?? fallbackName
+
+    return { blob: response.data, fileName }
+  } catch (error) {
+    // 실패 응답도 Blob으로 오므로, 공통 에러 문구를 쓸 수 있게 JSON으로 바꿔 둔다
+    if (isAxiosError(error) && error.response?.data instanceof Blob) {
+      try {
+        error.response.data = JSON.parse(await error.response.data.text())
+      } catch {
+        // JSON이 아니면 그대로 둔다
+      }
+    }
+    throw error
+  }
 }
