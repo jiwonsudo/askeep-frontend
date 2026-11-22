@@ -1,6 +1,48 @@
-# askeep-frontend
+<div align="center">
 
-Askeep 프론트엔드 레포지토리입니다. React + TypeScript + Vite 기반이며 패키지 매니저는 **pnpm**을 사용합니다.
+<img src="src/assets/landing-mascot.png" width="96" alt="ASKeep">
+
+# ASKeep · 애스킵
+
+**Ask freely, Keep forever.**<br>
+발표 질문을 모으고, AI가 발표 자료로 먼저 답하고, 끝난 세션은 지식으로 남기는 발표 Q&A 서비스
+
+🏆 GDGoC on Sangmyung 팀 프로젝트 **3위**
+
+<img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=white" alt="React">
+<img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript">
+<img src="https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite">
+<img src="https://img.shields.io/badge/TanStack%20Query-FF4154?style=flat-square&logo=reactquery&logoColor=white" alt="TanStack Query">
+<img src="https://img.shields.io/badge/STOMP-010101?style=flat-square&logo=socketdotio&logoColor=white" alt="STOMP">
+<img src="https://img.shields.io/badge/Tailwind%20CSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS">
+<img src="https://img.shields.io/badge/Vitest-6E9F18?style=flat-square&logo=vitest&logoColor=white" alt="Vitest">
+<img src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white" alt="Vercel">
+
+[**서비스 바로가기 →**](https://askeep.vercel.app)
+
+<img src="docs/screenshots/landing.webp" width="760" alt="랜딩 페이지">
+
+</div>
+
+## 소개
+
+발표가 끝나면 질문은 손을 든 몇 명의 것으로만 끝나고, 좋은 질문과 답은 그 자리에서 사라집니다. ASKeep은 이 문제를 풀기 위한 발표 질문 종합·지식 자산화 서비스입니다. 이 저장소는 프론트엔드이며, 초기 세팅부터 배포까지 1인으로 담당했습니다.
+
+| 질문하기 | AI 답변 |
+|:---:|:---:|
+| <img src="docs/screenshots/ask.webp" width="320" alt="질문하기"> | <img src="docs/screenshots/ai.webp" width="320" alt="AI 답변"> |
+| **발표자 화면** | **아카이브** |
+| <img src="docs/screenshots/presenter.webp" width="380" alt="발표자 화면"> | <img src="docs/screenshots/archive.webp" width="380" alt="아카이브"> |
+
+## 주요 기능
+
+- **바로 입장** — 발표 화면의 QR·입장 코드·초대 링크로 청중이 들어와 각자 화면에서 슬라이드를 넘겨 보며 실명 또는 익명으로 질문
+- **AI 우선 답변** — 발표 자료(PDF)에 있는 내용은 AI가 먼저 답하고 근거 슬라이드 페이지를 함께 표시 (RAG)
+- **질문 정렬** — 발표자 화면에는 '나도 궁금해요'를 많이 받은 질문부터 노출
+- **아카이브** — 세션이 끝나면 AI 요약과 질문·답변이 남아 태그·키워드로 다시 검색
+- **실시간** — STOMP 웹소켓으로 세션 시작·종료 이벤트를 받아 캐시를 갱신하고, 재연결 시 질문을 다시 받아 끊김에 대비
+
+> 백엔드는 Spring Boot · PostgreSQL, AI 서버는 FastAPI · multilingual-e5 임베딩 · Gemini로 구성되어 있습니다.
 
 ## 커밋 메시지 컨벤션
 
